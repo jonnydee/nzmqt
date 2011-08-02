@@ -5,22 +5,24 @@ nzmqt is a re-implementation of the approach taken by the zeromqt library. The i
 is to integrate ZeroMQ into the Qt event loop, mapping ZeroMQ message events onto 
 Qt signals. The original implementation also provides a Qt-like API
 which allows to represent messages as QByteArray instances. While I took this idea
-and implementation as a source of information, nzmqt is a completely new implementation.
-I did this not only in order to get rid of short comings, but also because I wanted
-to release my changes using the simplified BSD license and until now the author of
-zeromqt hasn't officially released his work under a certain license.
+and the original implementation as a source of information, I've done a completely
+new implementation. Not only in order to get rid of some short comings, but also 
+because I wanted to be sure I can use the code in my projects without problems,
+because until now zeromqt's author hasn't officially released his work under a certain
+(open source) license. Consequently, nzmqt is released to the public under the 
+simplified BSD license. So you can use the code in your projects without any fear.
 
-While zeromqt works fine for non-multi-part messages, his implementation doesn't
-support multi-part messages yet. Also, a lot of code duplicates code within the
-ZeroMQ's standard C++ binding. So in contrast to his implementation, nzmqt reuses
-as much code of ZeroMQ's original C++ binding as possible. Additionally, several
-things have been changed from a user's perspective. In summary, this nzmqt contains
-the following changes:
+While zeromqt works fine for non-multi-part messages, it doesn't support multi-part
+messages yet. Also, a lot of code duplicates code of ZeroMQ's standard C++ binding.
+But this requires to take care of both implementations. So in contrast to the original
+implementation, nzmqt reuses as much code of ZeroMQ's original C++ binding as possible
+by using inheritance. Additionally, several things have been changed from a user's
+perspective. In summary, nzmqt contains the following changes compared to zeromqt:
 
 * The implementation is a complete re-write in the sense that it doesn't duplicate code
 of ZeroMQ's official C++ binding anymore. Instead, it builds upon existing code
 through inheritance and, hence, it will likely benefit from future bugfixes and
-enhancements for the official C++ binding.
+enhancements targeted at ZeroMQ's C++ binding.
 * All classes are placed into a separate namespace 'nzmqt'.
 * This version now also supports ZeroMQ's multi-part messages.
 * The initial support for using Qt's way of handling errors using error codes 
@@ -73,7 +75,7 @@ They also show how to deal with exceptions in Qt.
 More Information
 ----------------
 
-[nzmqt]:   https://github.com/jonnydee/nzmqt "https://github.com/jonnydee/nzmqt"
+[nzmqt](https://github.com/jonnydee/nzmqt "https://github.com/jonnydee/nzmqt")
 
 [Qt]:     http://qt.nokia.com/ "Qt"
 [ZeroMQ]: http://zeromq.com/   "ZeroMQ"
