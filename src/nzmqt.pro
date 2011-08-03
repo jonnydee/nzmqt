@@ -24,7 +24,10 @@ HEADERS += \
     pubsub/PubSubServer.h \
     pubsub/PubSubClient.h \
     reqrep/ReqRepServer.h \
-    reqrep/ReqRepClient.h
+    reqrep/ReqRepClient.h \
+    pushpull/PushPullWorker.h \
+    pushpull/PushPullVentilator.h \
+    pushpull/PushPullSink.h
 
 LIBS += -lzmq
 
@@ -34,4 +37,3 @@ INCLUDEPATH += \
 
 QMAKE_LIBDIR += \
     /opt/local/lib
-

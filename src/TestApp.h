@@ -39,6 +39,9 @@
 #include "pubsub/PubSubServer.h"
 #include "reqrep/ReqRepClient.h"
 #include "reqrep/ReqRepServer.h"
+#include "pushpull/PushPullVentilator.h"
+#include "pushpull/PushPullWorker.h"
+#include "pushpull/PushPullSink.h"
 
 
 class TestApp : public QCoreApplication
@@ -97,6 +100,26 @@ public:
                 client->run();
                 return true;
             }
+            else if ("pushpull-ventilator" == command)
+            {
+                QString sinkAddress = args[3];
+                PushPullVentilator* ventilator = new PushPullVentilator(address, sinkAddress, this);
+                ventilator->run();
+                return true;
+            }
+            else if ("pushpull-worker" == command)
+            {
+                QString sinkAddress = args[3];
+                PushPullWorker* worker = new PushPullWorker(address, sinkAddress, this);
+                worker->run();
+                return true;
+            }
+            else if ("pushpull-sink" == command)
+            {
+                PushPullSink* sink = new PushPullSink(address, this);
+                sink->run();
+                return true;
+            }
             else
             {
                 printUsage(cout);
@@ -130,7 +153,13 @@ protected:
         out << QString(
 "\n\
 USAGE: %1 <pubsub-server|pubsub-client> <address> <topic>\n\
-USAGE: %1 <reqrep-server|reqrep-client> <address> <reply-msg|request-msg>\n\
+\n\
+USAGE: %1 <reqrep-server> <address> <reply-msg>\n\
+       %1 <reqrep-client> <address> <request-msg>\n\
+\n\
+USAGE: %1 <pushpull-ventilator> <ventilator-address> <sink-address>\n\
+       %1 <pushpull-worker> <ventilator-address> <sink-address>\n\
+       %1 <pushpull-sink> <sink-address> <dummy-arg>\n\
 \n\
 Publish-Subscribe Sample:\n\
 * Server: %1 pubsub-server tcp://127.0.0.1:1234 ping\n\
@@ -139,6 +168,11 @@ Publish-Subscribe Sample:\n\
 Request-Reply Sample:\n\
 * Server: %1 reqrep-server tcp://127.0.0.1:1234 World\n\
 * Client: %1 reqrep-client tcp://127.0.0.1:1234 Hello\n\
+\n\
+Push-Pull Sample:\n\
+* Ventilator:  %1 pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558\n\
+* Worker 1..n: %1 pushpull-worker tcp://127.0.0.1:5557 tcp://127.0.0.1:5558\n\
+* Sink:        %1 pushpull-sink tcp://127.0.0.1:5558 noop\n\
 \n").arg(executable);
     }
 };
