@@ -117,10 +117,6 @@ namespace nzmqt
             setOption(optName_, str_, strlen(str_));
         }
 
-        inline void setOption(int optName_, const QString& bytes_) {
-            setOption(optName_, bytes_.constData(), bytes_.size());
-        }
-
         inline void setOption(int optName_, const QByteArray& bytes_) {
             setOption(optName_, bytes_.constData(), bytes_.size());
         }
@@ -166,17 +162,19 @@ namespace nzmqt
 
         // Interprets the provided list of byte arrays as a multi-part message
         // and sends them accordingly.
+        // If an empty list is provided this method doesn't do anything and returns trua.
         inline bool sendMessage(const QList<QByteArray>& msg_, int flags_ = ZMQ_NOBLOCK)
         {
-            bool result = true;
-
-            for (int i = 0; i < msg_.size(); i++)
+            int i;
+            for (i = 0; i < msg_.size() - 1; i++)
             {
-                int fs = i < msg_.size() - 1 ? (flags_ | ZMQ_SNDMORE) : flags_;
-                result = sendMessage(msg_.at(i), fs) && result;
+                if (!sendMessage(msg_[i], flags_ | ZMQ_SNDMORE))
+                    return false;
             }
+            if (i < msg_.size())
+                return sendMessage(msg_[i], flags_);
 
-            return result;
+            return true;
         }
 
         // Receives a message or a message part.
@@ -196,7 +194,7 @@ namespace nzmqt
             ZMQMessage msg;
             while (receiveMessage(&msg))
             {
-                parts.append(msg.toByteArray());
+                parts += msg.toByteArray();
                 msg.rebuild();
 
                 if (!hasMoreMessageParts())
@@ -218,7 +216,7 @@ namespace nzmqt
             QList<QByteArray> parts = receiveMessage();
             while (!parts.isEmpty())
             {
-                ret.append(parts);
+                ret += parts;
 
                 parts = receiveMessage();
             }
