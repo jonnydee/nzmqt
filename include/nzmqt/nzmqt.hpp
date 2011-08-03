@@ -324,6 +324,9 @@ namespace nzmqt
 
             socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
             qsuper::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketActivity()));
+
+            socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
+            qsuper::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketActivity()));
         }
 
     signals:
@@ -349,6 +352,7 @@ namespace nzmqt
 
     private:
         QSocketNotifier *socketNotifyRead_;
+        QSocketNotifier *socketNotifyWrite_;
     };
 
     class ZMQContext : public QObject, private zmq::context_t
