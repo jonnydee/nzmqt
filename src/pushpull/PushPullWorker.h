@@ -28,6 +28,7 @@
 #define PUSHPULLWORKER_H
 
 #include <QObject>
+#include <QRunnable>
 #include <QDebug>
 #include <QList>
 #include <QByteArray>
@@ -36,7 +37,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class PushPullWorker : public QObject
+class PushPullWorker : public QObject, QRunnable
 {
     Q_OBJECT
 
@@ -44,7 +45,7 @@ class PushPullWorker : public QObject
 
 public:
     explicit PushPullWorker(const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress)
+        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
@@ -52,11 +53,11 @@ public:
         connect(ventilator_, SIGNAL(readyRead()), SLOT(workAvailable()));
 
         sink_ = context->createSocket(ZMQ_PUSH);
-        sink_->connectTo(sinkAddress);
     }
 
     void run()
     {
+        sink_->connectTo(sinkAddress_);
         ventilator_->connectTo(ventilatorAddress_);
     }
 
@@ -78,9 +79,11 @@ protected slots:
     }
 
 private:
+    QString ventilatorAddress_;
+    QString sinkAddress_;
+
     nzmqt::ZMQSocket* ventilator_;
     nzmqt::ZMQSocket* sink_;
-    QString ventilatorAddress_;
 };
 
 #endif // PUSHPULLWORKER_H

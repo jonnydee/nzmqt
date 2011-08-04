@@ -28,6 +28,7 @@
 #define PUBSUBCLIENT_H
 
 #include <QObject>
+#include <QRunnable>
 #include <QDebug>
 #include <QList>
 #include <QByteArray>
@@ -35,7 +36,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class PubSubClient : public QObject
+class PubSubClient : public QObject, QRunnable
 {
     Q_OBJECT
 
@@ -43,16 +44,17 @@ class PubSubClient : public QObject
 
 public:
     explicit PubSubClient(const QString& address, const QString& topic, QObject *parent)
-        : super(parent), address_(address)
+        : super(parent), address_(address), topic_(topic)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+
         socket_ = context->createSocket(ZMQ_SUB);
-        socket_->subscribeTo(topic);
         connect(socket_, SIGNAL(readyRead()), SLOT(messageReceived()));
     }
 
     void run()
     {
+        socket_->subscribeTo(topic_);
         socket_->connectTo(address_);
     }
 
@@ -65,8 +67,10 @@ protected slots:
     }
 
 private:
-    nzmqt::ZMQSocket* socket_;
     QString address_;
+    QString topic_;
+
+    nzmqt::ZMQSocket* socket_;
 };
 
 #endif // PUBSUBCLIENT_H

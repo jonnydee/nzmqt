@@ -28,6 +28,7 @@
 #define REQREPCLIENT_H
 
 #include <QObject>
+#include <QRunnable>
 #include <QDebug>
 #include <QList>
 #include <QByteArray>
@@ -38,7 +39,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class ReqRepClient : public QObject
+class ReqRepClient : public QObject, QRunnable
 {
     Q_OBJECT
 
@@ -46,12 +47,12 @@ class ReqRepClient : public QObject
 
 public:
     explicit ReqRepClient(const QString& address, const QString& requestMsg, QObject *parent)
-        : super(parent), requestMsg_(requestMsg)
+        : super(parent), address_(address), requestMsg_(requestMsg)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+
         socket_ = context->createSocket(ZMQ_REQ);
         connect(socket_, SIGNAL(readyRead()), SLOT(replyReceived()));
-        socket_->connectTo(address);
 
         timer_ = new QTimer(socket_);
         timer_->setSingleShot(true);
@@ -61,6 +62,8 @@ public:
 
     void run()
     {
+        socket_->connectTo(address_);
+
         timer_->start();
     }
 
@@ -86,8 +89,10 @@ protected slots:
     }
 
 private:
-    nzmqt::ZMQSocket* socket_;
+    QString address_;
     QString requestMsg_;
+
+    nzmqt::ZMQSocket* socket_;
     QTimer* timer_;
 };
 

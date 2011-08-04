@@ -28,6 +28,7 @@
 #define PUSHPULLSINK_H
 
 #include <QObject>
+#include <QRunnable>
 #include <QDebug>
 #include <QList>
 #include <QByteArray>
@@ -35,7 +36,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class PushPullSink : public QObject
+class PushPullSink : public QObject, QRunnable
 {
     Q_OBJECT
 
@@ -43,7 +44,7 @@ class PushPullSink : public QObject
 
 public:
     explicit PushPullSink(const QString& sinkAddress, QObject *parent)
-        : super(parent), sinkAddress_(sinkAddress), batchStarted_(false), task_nbr_(0)
+        : super(parent), sinkAddress_(sinkAddress), batchStarted_(false), taskNumber_(0)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
@@ -67,10 +68,10 @@ protected slots:
             return;
         }
 
-        if (task_nbr_ < 100)
+        if (taskNumber_ < 100)
         {
             sink_->receiveMessage();
-            if (task_nbr_++ % 10 == 0)
+            if (taskNumber_++ % 10 == 0)
                 qDebug() << ":";
             else
                 qDebug() << ".";
@@ -87,7 +88,7 @@ private:
     nzmqt::ZMQSocket* sink_;
     QString sinkAddress_;
     bool batchStarted_;
-    int task_nbr_;
+    int taskNumber_;
 };
 
 #endif // PUSHPULLSINK_H

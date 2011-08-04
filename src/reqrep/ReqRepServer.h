@@ -28,6 +28,7 @@
 #define REQREPSERVER_H
 
 #include <QObject>
+#include <QRunnable>
 #include <QDebug>
 #include <QList>
 #include <QByteArray>
@@ -37,7 +38,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class ReqRepServer : public QObject
+class ReqRepServer : public QObject, QRunnable
 {
     Q_OBJECT
 
@@ -45,16 +46,17 @@ class ReqRepServer : public QObject
 
 public:
     explicit ReqRepServer(const QString& address, const QString& replyMsg, QObject* parent)
-        : super(parent), replyMsg_(replyMsg)
+        : super(parent), address_(address), replyMsg_(replyMsg)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+
         socket_ = context->createSocket(ZMQ_REP);
         connect(socket_, SIGNAL(readyRead()), SLOT(requestReceived()));
-        socket_->bindTo(address);
     }
 
     void run()
     {
+        socket_->bindTo(address_);
     }
 
 protected slots:
@@ -68,13 +70,16 @@ protected slots:
         QList<QByteArray> reply;
         reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
         reply += replyMsg_.toLocal8Bit();
+        reply += request;
         qDebug() << "ReqRepServer::sendReply> " << reply;
         socket_->sendMessage(reply);
     }
 
 private:
-    nzmqt::ZMQSocket* socket_;
+    QString address_;
     QString replyMsg_;
+
+    nzmqt::ZMQSocket* socket_;
 };
 
 #endif // REQREPSERVER_H
