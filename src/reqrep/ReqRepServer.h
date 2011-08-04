@@ -70,7 +70,7 @@ protected slots:
         QList<QByteArray> reply;
         reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
         reply += replyMsg_.toLocal8Bit();
-        reply += request;
+        reply += request; // We also append original request.
         qDebug() << "ReqRepServer::sendReply> " << reply;
         socket_->sendMessage(reply);
     }
