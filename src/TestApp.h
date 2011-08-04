@@ -63,17 +63,20 @@ public:
         {
             QStringList args = arguments();
 
-            if (args.size() < 4)
+            if (args.size() == 1 || "-h" == args[1] || "--help" == args[1])
             {
                 printUsage(cout);
                 return false;
             }
 
             QString command = args[1];
-            QString address = args[2];
 
             if ("pubsub-server" == command)
             {
+                if (args.size() < 4)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString address = args[2];
                 QString topic = args[3];
                 PubSubServer* server = new PubSubServer(address, topic, this);
                 server->run();
@@ -81,6 +84,10 @@ public:
             }
             else if ("pubsub-client" == command)
             {
+                if (args.size() < 4)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString address = args[2];
                 QString topic = args[3];
                 PubSubClient* client = new PubSubClient(address, topic, this);
                 client->run();
@@ -88,6 +95,10 @@ public:
             }
             else if ("reqrep-server" == command)
             {
+                if (args.size() < 4)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString address = args[2];
                 QString responseMsg = args[3];
                 ReqRepServer* server = new ReqRepServer(address, responseMsg, this);
                 server->run();
@@ -95,6 +106,10 @@ public:
             }
             else if ("reqrep-client" == command)
             {
+                if (args.size() < 4)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString address = args[2];
                 QString requestMsg = args[3];
                 ReqRepClient* client = new ReqRepClient(address, requestMsg, this);
                 client->run();
@@ -102,28 +117,39 @@ public:
             }
             else if ("pushpull-ventilator" == command)
             {
+                if (args.size() < 4)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                PushPullVentilator* ventilator = new PushPullVentilator(address, sinkAddress, this);
+                PushPullVentilator* ventilator = new PushPullVentilator(ventilatorAddress, sinkAddress, this);
                 ventilator->run();
                 return true;
             }
             else if ("pushpull-worker" == command)
             {
+                if (args.size() < 4)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                PushPullWorker* worker = new PushPullWorker(address, sinkAddress, this);
+                PushPullWorker* worker = new PushPullWorker(ventilatorAddress, sinkAddress, this);
                 worker->run();
                 return true;
             }
             else if ("pushpull-sink" == command)
             {
-                PushPullSink* sink = new PushPullSink(address, this);
+                if (args.size() < 3)
+                    throw std::runtime_error("Mandatory argument(s) missing!");
+
+                QString sinkAddress = args[2];
+                PushPullSink* sink = new PushPullSink(sinkAddress, this);
                 sink->run();
                 return true;
             }
             else
             {
-                printUsage(cout);
-                return false;
+                throw std::runtime_error(QString("Unknown command: '%1'").arg(command).toStdString());
             }
         }
         catch (std::exception& ex)
@@ -131,6 +157,8 @@ public:
             qWarning() << ex.what();
             return false;
         }
+
+        return true;
     }
 
 protected:
@@ -152,14 +180,17 @@ protected:
         QString executable = arguments().at(0);
         out << QString(
 "\n\
-USAGE: %1 <pubsub-server|pubsub-client> <address> <topic>\n\
+USAGE: %1 [-h|--help]                                               -- Show this help message.\n\
 \n\
-USAGE: %1 <reqrep-server> <address> <reply-msg>\n\
-       %1 <reqrep-client> <address> <request-msg>\n\
+USAGE: %1 <pubsub-server> <address> <topic>                         -- Start PUB server.\n\
+       %1 <pubsub-client> <address> <topic>                         -- Start SUB client.\n\
 \n\
-USAGE: %1 <pushpull-ventilator> <ventilator-address> <sink-address>\n\
-       %1 <pushpull-worker> <ventilator-address> <sink-address>\n\
-       %1 <pushpull-sink> <sink-address> <dummy-arg>\n\
+USAGE: %1 <reqrep-server> <address> <reply-msg>                     -- Start REQ server.\n\
+       %1 <reqrep-client> <address> <request-msg>                   -- Start REP client.\n\
+\n\
+USAGE: %1 <pushpull-ventilator> <ventilator-address> <sink-address> -- Start ventilator.\n\
+       %1 <pushpull-worker> <ventilator-address> <sink-address>     -- Start a worker.\n\
+       %1 <pushpull-sink> <sink-address>                            -- Start sink.\n\
 \n\
 Publish-Subscribe Sample:\n\
 * Server: %1 pubsub-server tcp://127.0.0.1:1234 ping\n\
@@ -172,7 +203,7 @@ Request-Reply Sample:\n\
 Push-Pull Sample:\n\
 * Ventilator:  %1 pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558\n\
 * Worker 1..n: %1 pushpull-worker tcp://127.0.0.1:5557 tcp://127.0.0.1:5558\n\
-* Sink:        %1 pushpull-sink tcp://127.0.0.1:5558 noop\n\
+* Sink:        %1 pushpull-sink tcp://127.0.0.1:5558\n\
 \n").arg(executable);
     }
 };
