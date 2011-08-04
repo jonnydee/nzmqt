@@ -69,6 +69,7 @@ public slots:
             {
                 printUsage(cout);
                 quit();
+                return;
             }
 
             QString command = args[1];
@@ -112,12 +113,13 @@ public slots:
             }
             else if ("pushpull-ventilator" == command)
             {
-                if (args.size() < 4)
+                if (args.size() < 5)
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                commandImpl = new PushPullVentilator(ventilatorAddress, sinkAddress, this);
+                quint32 numberOfWorkItems = args[4].toUInt();
+                commandImpl = new PushPullVentilator(ventilatorAddress, sinkAddress, numberOfWorkItems, this);
             }
             else if ("pushpull-worker" == command)
             {
@@ -170,17 +172,17 @@ protected:
         QString executable = arguments().at(0);
         out << QString(
 "\n\
-USAGE: %1 [-h|--help]                                               -- Show this help message.\n\
+USAGE: %1 [-h|--help]                                                                   -- Show this help message.\n\
 \n\
-USAGE: %1 <pubsub-server> <address> <topic>                         -- Start PUB server.\n\
-       %1 <pubsub-client> <address> <topic>                         -- Start SUB client.\n\
+USAGE: %1 <pubsub-server> <address> <topic>                                             -- Start PUB server.\n\
+       %1 <pubsub-client> <address> <topic>                                             -- Start SUB client.\n\
 \n\
-USAGE: %1 <reqrep-server> <address> <reply-msg>                     -- Start REQ server.\n\
-       %1 <reqrep-client> <address> <request-msg>                   -- Start REP client.\n\
+USAGE: %1 <reqrep-server> <address> <reply-msg>                                         -- Start REQ server.\n\
+       %1 <reqrep-client> <address> <request-msg>                                       -- Start REP client.\n\
 \n\
-USAGE: %1 <pushpull-ventilator> <ventilator-address> <sink-address> -- Start ventilator.\n\
-       %1 <pushpull-worker> <ventilator-address> <sink-address>     -- Start a worker.\n\
-       %1 <pushpull-sink> <sink-address>                            -- Start sink.\n\
+USAGE: %1 <pushpull-ventilator> <ventilator-address> <sink-address> <numberOfWorkItems> -- Start ventilator.\n\
+       %1 <pushpull-worker> <ventilator-address> <sink-address>                         -- Start a worker.\n\
+       %1 <pushpull-sink> <sink-address>                                                -- Start sink.\n\
 \n\
 Publish-Subscribe Sample:\n\
 * Server: %1 pubsub-server tcp://127.0.0.1:1234 ping\n\
@@ -191,7 +193,7 @@ Request-Reply Sample:\n\
 * Client: %1 reqrep-client tcp://127.0.0.1:1234 Hello\n\
 \n\
 Push-Pull Sample:\n\
-* Ventilator:  %1 pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558\n\
+* Ventilator:  %1 pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558 100\n\
 * Worker 1..n: %1 pushpull-worker tcp://127.0.0.1:5557 tcp://127.0.0.1:5558\n\
 * Sink:        %1 pushpull-sink tcp://127.0.0.1:5558\n\
 \n").arg(executable);

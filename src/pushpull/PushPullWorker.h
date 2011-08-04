@@ -33,6 +33,8 @@
 #include <QList>
 #include <QByteArray>
 #include <QTimer>
+#include <QWaitCondition>
+#include <QMutex>
 
 #include "nzmqt/nzmqt.hpp"
 
@@ -65,15 +67,12 @@ protected slots:
     void workAvailable()
     {
         QList<QByteArray> msg = ventilator_->receiveMessage();
-        int work = QString(msg[0]).toInt();
-        qDebug() << "WORK:" << work;
+        quint32 work = QString(msg[0]).toUInt();
 
-        // Do the work.
-        QTimer::singleShot(work, this, SLOT(workFinished()));
-    }
+        // Do the work ;-)
+        qDebug() << "snore" << work << "msec";
+        sleep(work);
 
-    void workFinished()
-    {
         // Send results to sink.
         sink_->sendMessage("");
     }
@@ -84,6 +83,13 @@ private:
 
     nzmqt::ZMQSocket* ventilator_;
     nzmqt::ZMQSocket* sink_;
+
+    static inline void sleep(unsigned msec)
+    {
+        QMutex mutex;
+        QWaitCondition wc;
+        wc.wait(&mutex, msec);
+    }
 };
 
 #endif // PUSHPULLWORKER_H

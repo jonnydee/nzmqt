@@ -28,6 +28,8 @@
 #define PUSHPULLSINK_H
 
 #include <QObject>
+#include <QCoreApplication>
+#include <QTime>
 #include <QRunnable>
 #include <QDebug>
 #include <QList>
@@ -44,7 +46,7 @@ class PushPullSink : public QObject, public QRunnable
 
 public:
     explicit PushPullSink(const QString& sinkAddress, QObject *parent)
-        : super(parent), sinkAddress_(sinkAddress), batchStarted_(false), taskNumber_(0)
+        : super(parent), sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
@@ -60,35 +62,44 @@ public:
 protected slots:
     void batchEvent()
     {
-        if (!batchStarted_)
+        if (numberOfWorkItems_ < 0)
         {
-            sink_->receiveMessage();
-            batchStarted_ = true;
-            qDebug() << "Batch started";
-            return;
+            QList<QByteArray> batchStartMsg = sink_->receiveMessage();
+
+            numberOfWorkItems_ = batchStartMsg[0].toUInt();
+            qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
+            stopWatch_.start();
+
+            if (numberOfWorkItems_)
+                return;
         }
 
-        if (taskNumber_ < 100)
+        if (numberOfWorkItems_ > 0)
         {
             sink_->receiveMessage();
-            if (taskNumber_++ % 10 == 0)
-                qDebug() << ":";
+
+            if (numberOfWorkItems_ % 10 == 0)
+                qDebug() << numberOfWorkItems_;
             else
                 qDebug() << ".";
+
+            --numberOfWorkItems_;
         }
-        else
+
+        if (!numberOfWorkItems_)
         {
-            // Calculate and report duration of batch
-            // TODO
-            qDebug() << "FINISHED";
+            int msec = stopWatch_.elapsed();
+            qDebug() << "FINISHED all task in " << msec << "msec";
+            numberOfWorkItems_ = -1;
         }
     }
 
 private:
-    nzmqt::ZMQSocket* sink_;
     QString sinkAddress_;
-    bool batchStarted_;
-    int taskNumber_;
+
+    nzmqt::ZMQSocket* sink_;
+    int numberOfWorkItems_;
+    QTime stopWatch_;
 };
 
 #endif // PUSHPULLSINK_H

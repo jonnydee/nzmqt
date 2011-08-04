@@ -27,6 +27,7 @@
 #ifndef PUSHPULLVENTILATOR_H
 #define PUSHPULLVENTILATOR_H
 
+#include <QCoreApplication>
 #include <QObject>
 #include <QRunnable>
 #include <QDebug>
@@ -46,8 +47,8 @@ class PushPullVentilator : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit PushPullVentilator(const QString& ventilatorAddress, const QString& sinkAddress, QObject* parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
+    explicit PushPullVentilator(const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
+        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
     {
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
@@ -64,23 +65,26 @@ public:
         // Wait for user start.
 
         QTextStream stream(stdin);
-        qDebug() << "Press Enter if workers are ready!";
+        qDebug() << "Available work items:" << numberOfWorkItems_;
+        qDebug() << "Press ENTER if workers are ready!";
         stream.readLine();
 
-        // The first message is "0" and signals start of batch
+        // The first message tells the sink how much work it needs to do
+        // and at the same time signals start of batch.
 
-        sink_->sendMessage("0");
+        sink_->sendMessage(QString::number(numberOfWorkItems_).toLocal8Bit());
 
-        // TODO: Initialize random number generator.
-        // qsrand(xxx);
+        // Initialize random number generator.
 
-        // Send 100 tasks
+        qsrand(QTime::currentTime().msec());
+
+        // Send work items.
 
         int totalCost = 0; // Total expected cost in msecs
 
-        for (int taskNumber = 0; taskNumber < 100; taskNumber++) {
+        for (quint32 workItem = 0; workItem < numberOfWorkItems_; workItem++) {
             // Random workload from 1 to 100msecs
-            int workload = qrand() % 100 + 1;;
+            quint32 workload = qrand() % 100 + 1;;
             // Update toal cost.
             totalCost += workload;
             // Push workload.
@@ -88,11 +92,13 @@ public:
         }
 
         qDebug() << "Total expected cost: " << totalCost << " msec";
+        QCoreApplication::instance()->quit();
     }
 
 private:
     QString ventilatorAddress_;
     QString sinkAddress_;
+    quint32 numberOfWorkItems_;
 
     nzmqt::ZMQSocket* ventilator_;
     nzmqt::ZMQSocket* sink_;
