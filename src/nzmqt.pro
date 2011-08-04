@@ -8,7 +8,7 @@ QT       += core
 
 QT       -= gui
 
-TARGET = TestApp
+TARGET = nzmqt
 CONFIG   += console
 CONFIG   -= app_bundle
 
@@ -20,14 +20,14 @@ SOURCES += \
 
 HEADERS += \
     ../include/nzmqt/nzmqt.hpp \
-    TestApp.h \
     pubsub/PubSubServer.h \
     pubsub/PubSubClient.h \
     reqrep/ReqRepServer.h \
     reqrep/ReqRepClient.h \
     pushpull/PushPullWorker.h \
     pushpull/PushPullVentilator.h \
-    pushpull/PushPullSink.h
+    pushpull/PushPullSink.h \
+    NzmqtApp.h
 
 LIBS += -lzmq
 

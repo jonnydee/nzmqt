@@ -32,7 +32,7 @@
 #include <QDebug>
 #include <QStringList>
 #include <QTextStream>
-#include <QThreadPool>
+#include <QTimer>
 
 #include "nzmqt/nzmqt.hpp"
 
@@ -45,16 +45,17 @@
 #include "pushpull/PushPullSink.h"
 
 
-class TestApp : public QCoreApplication
+class NzmqtApp : public QCoreApplication
 {
     Q_OBJECT
 
     typedef QCoreApplication super;
 
 public:
-    explicit TestApp(int& argc, char** argv)
+    explicit NzmqtApp(int& argc, char** argv)
         : super(argc, argv)
     {
+        QTimer::singleShot(0, this, SLOT(run()));
     }
 
 public slots:

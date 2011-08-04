@@ -26,16 +26,11 @@
 
 #include <QtCore/QCoreApplication>
 
-#include "TestApp.h"
+#include "NzmqtApp.h"
 
 int main(int argc, char *argv[])
 {
-    TestApp application(argc, argv);
+    NzmqtApp nzmqtApp(argc, argv);
 
-    QMetaObject::invokeMethod(&application, "run", Qt::QueuedConnection);
-
-//    if (!application.run())
-//        return -1;
-
-    return application.exec();
+    return nzmqtApp.exec();
 }
