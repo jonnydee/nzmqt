@@ -1,7 +1,7 @@
 nzmqt - A lightweight C++ [Qt][] binding for [ZeroMQ][]
 ======================================================
 
-nzmqt is a re-implementation of the approach taken by the zeromqt library. The idea 
+nzmqt is a re-implementation of the approach taken by the [zeromqt][] library. The idea 
 is to integrate ZeroMQ into the Qt event loop, mapping ZeroMQ message events onto 
 Qt signals. The original implementation also provides a Qt-like API
 which allows to represent messages as QByteArray instances. While I took this idea
@@ -81,3 +81,4 @@ More Information
 
 [Qt]:     http://qt.nokia.com/ "Qt"
 [ZeroMQ]: http://zeromq.com/   "ZeroMQ"
+[zeromqt]: https://github.com/wttw/zeromqt "zeromqt"
