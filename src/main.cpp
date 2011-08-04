@@ -32,8 +32,10 @@ int main(int argc, char *argv[])
 {
     TestApp application(argc, argv);
 
-    if (!application.run())
-        return -1;
+    QMetaObject::invokeMethod(&application, "run", Qt::QueuedConnection);
+
+//    if (!application.run())
+//        return -1;
 
     return application.exec();
 }

@@ -32,6 +32,7 @@
 #include <QDebug>
 #include <QStringList>
 #include <QTextStream>
+#include <QThreadPool>
 
 #include "nzmqt/nzmqt.hpp"
 
@@ -56,7 +57,8 @@ public:
     {
     }
 
-    bool run()
+public slots:
+    void run()
     {
         QTextStream cout(stdout);
         try
@@ -66,10 +68,11 @@ public:
             if (args.size() == 1 || "-h" == args[1] || "--help" == args[1])
             {
                 printUsage(cout);
-                return false;
+                quit();
             }
 
             QString command = args[1];
+            QRunnable* commandImpl = 0;
 
             if ("pubsub-server" == command)
             {
@@ -78,9 +81,7 @@ public:
 
                 QString address = args[2];
                 QString topic = args[3];
-                PubSubServer* server = new PubSubServer(address, topic, this);
-                server->run();
-                return true;
+                commandImpl = new PubSubServer(address, topic, this);
             }
             else if ("pubsub-client" == command)
             {
@@ -89,9 +90,7 @@ public:
 
                 QString address = args[2];
                 QString topic = args[3];
-                PubSubClient* client = new PubSubClient(address, topic, this);
-                client->run();
-                return true;
+                commandImpl = new PubSubClient(address, topic, this);
             }
             else if ("reqrep-server" == command)
             {
@@ -100,9 +99,7 @@ public:
 
                 QString address = args[2];
                 QString responseMsg = args[3];
-                ReqRepServer* server = new ReqRepServer(address, responseMsg, this);
-                server->run();
-                return true;
+                commandImpl = new ReqRepServer(address, responseMsg, this);
             }
             else if ("reqrep-client" == command)
             {
@@ -111,9 +108,7 @@ public:
 
                 QString address = args[2];
                 QString requestMsg = args[3];
-                ReqRepClient* client = new ReqRepClient(address, requestMsg, this);
-                client->run();
-                return true;
+                commandImpl = new ReqRepClient(address, requestMsg, this);
             }
             else if ("pushpull-ventilator" == command)
             {
@@ -122,9 +117,7 @@ public:
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                PushPullVentilator* ventilator = new PushPullVentilator(ventilatorAddress, sinkAddress, this);
-                ventilator->run();
-                return true;
+                commandImpl = new PushPullVentilator(ventilatorAddress, sinkAddress, this);
             }
             else if ("pushpull-worker" == command)
             {
@@ -133,9 +126,7 @@ public:
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                PushPullWorker* worker = new PushPullWorker(ventilatorAddress, sinkAddress, this);
-                worker->run();
-                return true;
+                commandImpl = new PushPullWorker(ventilatorAddress, sinkAddress, this);
             }
             else if ("pushpull-sink" == command)
             {
@@ -143,22 +134,21 @@ public:
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString sinkAddress = args[2];
-                PushPullSink* sink = new PushPullSink(sinkAddress, this);
-                sink->run();
-                return true;
+                commandImpl = new PushPullSink(sinkAddress, this);
             }
             else
             {
                 throw std::runtime_error(QString("Unknown command: '%1'").arg(command).toStdString());
             }
+
+            // Run command.
+            commandImpl->run();
         }
         catch (std::exception& ex)
         {
             qWarning() << ex.what();
-            return false;
+            exit(-1);
         }
-
-        return true;
     }
 
 protected:

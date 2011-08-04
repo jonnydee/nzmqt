@@ -39,7 +39,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class ReqRepClient : public QObject, QRunnable
+class ReqRepClient : public QObject, public QRunnable
 {
     Q_OBJECT
 

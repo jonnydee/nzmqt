@@ -39,7 +39,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class PushPullVentilator : public QObject, QRunnable
+class PushPullVentilator : public QObject, public QRunnable
 {
     Q_OBJECT
 

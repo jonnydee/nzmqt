@@ -36,7 +36,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class PubSubClient : public QObject, QRunnable
+class PubSubClient : public QObject, public QRunnable
 {
     Q_OBJECT
 

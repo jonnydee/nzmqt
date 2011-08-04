@@ -36,7 +36,7 @@
 #include "nzmqt/nzmqt.hpp"
 
 
-class PushPullSink : public QObject, QRunnable
+class PushPullSink : public QObject, public QRunnable
 {
     Q_OBJECT
 
