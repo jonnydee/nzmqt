@@ -38,7 +38,7 @@ own 'ZMQContext' instance yourself.
 * The socket class 'ZMQSocket' now also inherits from QObject, so you can
 add it as a child to any QObject parent as you know it from Qt.
 * The code is officially licensed under the simplified BSD license.
-* Not only PUSH-PUB, but also REQ-REP and PUSH-PULL are supported. (Note that
+* Not only PUB-SUB, but also REQ-REP and PUSH-PULL are supported. (Note that
 other socket combinations might work, but they haven't been tested yet.)
 
 Status
