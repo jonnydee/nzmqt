@@ -58,7 +58,20 @@ public:
         QTimer::singleShot(0, this, SLOT(run()));
     }
 
-public slots:
+    bool notify(QObject *obj, QEvent *event)
+    {
+        try
+        {
+            return super::notify(obj, event);
+        }
+        catch (std::exception& ex)
+        {
+            qWarning() << ex.what();
+            return false;
+        }
+    }
+
+protected slots:
     void run()
     {
         QTextStream cout(stdout);
@@ -155,19 +168,6 @@ public slots:
     }
 
 protected:
-    bool notify(QObject *obj, QEvent *event)
-    {
-        try
-        {
-            return super::notify(obj, event);
-        }
-        catch (std::exception& ex)
-        {
-            qWarning() << ex.what();
-            return false;
-        }
-    }
-
     void printUsage(QTextStream& out)
     {
         QString executable = arguments().at(0);
