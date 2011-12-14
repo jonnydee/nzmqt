@@ -44,7 +44,7 @@ other socket combinations might work, but they haven't been tested yet.)
 Status
 ------
 
-There are no known bugs.
+See the [official bug tracker](https://github.com/jonnydee/nzmqt/issues "https://github.com/jonnydee/nzmqt/issues").
 
 Usage
 -----
