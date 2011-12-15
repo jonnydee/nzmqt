@@ -157,7 +157,12 @@ namespace nzmqt
 
         inline bool sendMessage(const QByteArray& bytes_, int flags_ = ZMQ_NOBLOCK) {
             ZMQMessage msg(bytes_);
-            return send(msg, flags_);
+            bool result = send(msg, flags_);
+            if (!result)
+            {
+                socketNotifyWrite_->setEnabled(true);
+            }
+            return result;
         }
 
         // Interprets the provided list of byte arrays as a multi-part message
@@ -323,22 +328,14 @@ namespace nzmqt
             int fd = fileDescriptor();
 
             socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-            qsuper::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketActivity()));
+            qsuper::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
 
             socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
-            qsuper::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketActivity()));
+            qsuper::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
         }
 
-    signals:
-        void readyRead();
-        void readyWrite();
-        void pollError();
-
-    protected slots:
-        inline void socketActivity()
+        void socketActivity(quint32 flags_)
         {
-            quint32 flags_ = flags();
-
             if(flags_ & ZMQ_POLLIN) {
                 emit readyRead();
             }
@@ -348,6 +345,28 @@ namespace nzmqt
             if(flags_ & ZMQ_POLLERR) {
                 emit pollError();
             }
+        }
+
+    signals:
+        void readyRead();
+        void readyWrite();
+        void pollError();
+
+    protected slots:
+        inline void socketReadActivity()
+        {
+            quint32 flags_ = flags();
+            socketActivity(flags_);
+        }
+
+        inline void socketWriteActivity()
+        {
+            quint32 flags_ = flags();
+            if (flags_ == 0)
+            {
+                socketNotifyWrite_->setEnabled(false);
+            }
+            socketActivity(flags_);
         }
 
     private:
