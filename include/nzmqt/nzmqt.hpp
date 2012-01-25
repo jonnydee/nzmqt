@@ -48,7 +48,7 @@ namespace nzmqt
 
     class ZMQMessage : private zmq::message_t
     {
-        friend class ZMQSocket;
+        friend class ZMQSocketBase;
 
         typedef zmq::message_t super;
 
@@ -92,15 +92,11 @@ namespace nzmqt
         }
     };
 
-    // An instance of this class cannot directly be created. Use one
-    // of the 'ZMQContext::createSocket()' methods instead.
-    class ZMQSocket : public QObject, private zmq::socket_t
+    // This class cannot be instantiated. Its purpose is to serve as an
+    // intermediate base class that provides Qt-based convenience methods
+    // to subclasses.
+    class ZMQSocketBase : private zmq::socket_t
     {
-        Q_OBJECT
-
-        friend class ZMQContext;
-
-        typedef QObject qsuper;
         typedef zmq::socket_t zmqsuper;
 
     public:
@@ -110,7 +106,7 @@ namespace nzmqt
 
         inline void setOption(int option_, const void *optionVal_, size_t optionValLen_)
         {
-            zmqsuper::setsockopt(option_, optionVal_, optionValLen_);
+            setsockopt(option_, optionVal_, optionValLen_);
         }
 
         inline void setOption(int optName_, const char* str_) {
@@ -125,44 +121,40 @@ namespace nzmqt
             setOption(optName_, &value_, sizeof(value_));
         }
 
-        inline void getOption(int option_, void *optval_, size_t *optvallen_)
+        inline void getOption(int option_, void *optval_, size_t *optvallen_) const
         {
-            zmqsuper::getsockopt(option_, optval_, optvallen_);
+            const_cast<ZMQSocketBase*>(this)->getsockopt(option_, optval_, optvallen_);
         }
 
         inline void bindTo(const QString& addr_)
         {
-            zmqsuper::bind(addr_.toLocal8Bit());
+            bind(addr_.toLocal8Bit());
         }
 
         inline void bindTo(const char *addr_)
         {
-            zmqsuper::bind(addr_);
+            bind(addr_);
         }
 
         inline void connectTo(const QString& addr_)
         {
-            zmqsuper::connect(addr_.toLocal8Bit());
+            connect(addr_.toLocal8Bit());
         }
 
         inline void connectTo(const char* addr_)
         {
-            zmqsuper::connect(addr_);
+            connect(addr_);
         }
 
         inline bool sendMessage(ZMQMessage& msg_, int flags_ = ZMQ_NOBLOCK)
         {
-            return zmqsuper::send(msg_, flags_);
+            return send(msg_, flags_);
         }
 
-        inline bool sendMessage(const QByteArray& bytes_, int flags_ = ZMQ_NOBLOCK) {
+        inline bool sendMessage(const QByteArray& bytes_, int flags_ = ZMQ_NOBLOCK)
+        {
             ZMQMessage msg(bytes_);
-            bool result = send(msg, flags_);
-            if (!result)
-            {
-                socketNotifyWrite_->setEnabled(true);
-            }
-            return result;
+            return send(msg, flags_);
         }
 
         // Interprets the provided list of byte arrays as a multi-part message
@@ -185,7 +177,7 @@ namespace nzmqt
         // Receives a message or a message part.
         inline bool receiveMessage(ZMQMessage* msg_, int flags_ = ZMQ_NOBLOCK)
         {
-            return zmqsuper::recv(msg_, flags_);
+            return recv(msg_, flags_);
         }
 
         // Receives a message.
@@ -229,7 +221,7 @@ namespace nzmqt
             return ret;
         }
 
-        inline int fileDescriptor()
+        inline int fileDescriptor() const
         {
             int value;
             size_t size = sizeof(value);
@@ -237,7 +229,7 @@ namespace nzmqt
             return value;
         }
 
-        inline quint32 flags()
+        inline quint32 flags() const
         {
             quint32 value;
             size_t size = sizeof(value);
@@ -247,7 +239,7 @@ namespace nzmqt
 
         // Returns true if there are more parts of a multi-part message
         // to be received.
-        inline bool hasMoreMessageParts()
+        inline bool hasMoreMessageParts() const
         {
             quint64 value;
             size_t size = sizeof(value);
@@ -270,7 +262,7 @@ namespace nzmqt
             setOption(ZMQ_IDENTITY, const_cast<char*>(name_.constData()), name_.size());
         }
 
-        inline QByteArray identity()
+        inline QByteArray identity() const
         {
             char idbuf[256];
             size_t size = sizeof(idbuf);
@@ -283,7 +275,7 @@ namespace nzmqt
             setOption(ZMQ_LINGER, msec_);
         }
 
-        inline int linger()
+        inline int linger() const
         {
             int msec=-1;
             size_t size = sizeof(msec);
@@ -322,8 +314,39 @@ namespace nzmqt
         }
 
     protected:
+        inline ZMQSocketBase(zmq::context_t* context_, int type_)
+            : zmqsuper(*context_, type_)
+        {
+        }
+    };
+
+    // An instance of this class cannot directly be created. Use one
+    // of the 'ZMQContext::createSocket()' factory methods instead.
+    class ZMQSocket : public QObject, public ZMQSocketBase
+    {
+        Q_OBJECT
+
+        friend class ZMQContext;
+
+        typedef QObject qsuper;
+        typedef ZMQSocketBase zmqsuper;
+
+    public:
+        using zmqsuper::sendMessage;
+
+        inline bool sendMessage(const QByteArray& bytes_, int flags_ = ZMQ_NOBLOCK)
+        {
+            bool result = zmqsuper::sendMessage(bytes_, flags_);
+
+            if (!result)
+                socketNotifyWrite_->setEnabled(true);
+
+            return result;
+        }
+
+    protected:
         inline ZMQSocket(zmq::context_t* context_, int type_)
-            : qsuper(0), zmqsuper(*context_, type_)
+            : qsuper(0), zmqsuper(context_, type_)
         {
             int fd = fileDescriptor();
 
@@ -334,7 +357,7 @@ namespace nzmqt
             qsuper::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
         }
 
-        void socketActivity(quint32 flags_)
+        inline void socketActivity(quint32 flags_)
         {
             if(flags_ & ZMQ_POLLIN) {
                 emit readyRead();
