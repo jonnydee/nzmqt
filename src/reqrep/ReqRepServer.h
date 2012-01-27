@@ -52,7 +52,8 @@ public:
 
     void run()
     {
-        nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+        nzmqt::PollingZMQContext* context = new nzmqt::PollingZMQContext(4, this);
+        context->start();
 
         socket_ = context->createSocket(ZMQ_REP);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));

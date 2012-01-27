@@ -49,7 +49,8 @@ public:
     explicit PushPullWorker(const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
         : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
     {
-        nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+        nzmqt::PollingZMQContext* context = new nzmqt::PollingZMQContext(4, this);
+        context->start();
 
         ventilator_ = context->createSocket(ZMQ_PULL);
         connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));

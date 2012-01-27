@@ -49,7 +49,8 @@ public:
     explicit ReqRepClient(const QString& address, const QString& requestMsg, QObject *parent)
         : super(parent), address_(address), requestMsg_(requestMsg)
     {
-        nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+        nzmqt::PollingZMQContext* context = new nzmqt::PollingZMQContext(4, this);
+        context->start();
 
         socket_ = context->createSocket(ZMQ_REQ);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
