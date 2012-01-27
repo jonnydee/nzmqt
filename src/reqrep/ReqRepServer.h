@@ -48,23 +48,23 @@ public:
     explicit ReqRepServer(const QString& address, const QString& replyMsg, QObject* parent)
         : super(parent), address_(address), replyMsg_(replyMsg)
     {
-        nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
-
-        socket_ = context->createSocket(ZMQ_REP);
-        connect(socket_, SIGNAL(readyRead()), SLOT(requestReceived()));
     }
 
     void run()
     {
+        nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
+
+        socket_ = context->createSocket(ZMQ_REP);
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
+
         socket_->bindTo(address_);
     }
 
 protected slots:
-    void requestReceived()
+    void requestReceived(const QList<QByteArray>& request)
     {
         static quint64 counter = 0;
 
-        QList<QByteArray> request = socket_->receiveMessage();
         qDebug() << "ReqRepServer::requestReceived> " << request;
 
         QList<QByteArray> reply;

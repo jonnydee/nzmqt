@@ -52,7 +52,7 @@ public:
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
         ventilator_ = context->createSocket(ZMQ_PULL);
-        connect(ventilator_, SIGNAL(readyRead()), SLOT(workAvailable()));
+        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
 
         sink_ = context->createSocket(ZMQ_PUSH);
     }
@@ -64,10 +64,9 @@ public:
     }
 
 protected slots:
-    void workAvailable()
+    void workAvailable(const QList<QByteArray>& message)
     {
-        QList<QByteArray> msg = ventilator_->receiveMessage();
-        quint32 work = QString(msg[0]).toUInt();
+        quint32 work = QString(message[0]).toUInt();
 
         // Do the work ;-)
         qDebug() << "snore" << work << "msec";

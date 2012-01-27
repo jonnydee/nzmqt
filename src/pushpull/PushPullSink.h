@@ -51,7 +51,7 @@ public:
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
         sink_ = context->createSocket(ZMQ_PULL);
-        connect(sink_, SIGNAL(readyRead()), SLOT(batchEvent()));
+        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 
     void run()
@@ -60,13 +60,12 @@ public:
     }
 
 protected slots:
-    void batchEvent()
+    void batchEvent(const QList<QByteArray>& message)
     {
         if (numberOfWorkItems_ < 0)
         {
-            QList<QByteArray> batchStartMsg = sink_->receiveMessage();
-
-            numberOfWorkItems_ = batchStartMsg[0].toUInt();
+            // 'message' is a batch start message.
+            numberOfWorkItems_ = message[0].toUInt();
             qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
             stopWatch_.start();
 
@@ -76,8 +75,6 @@ protected slots:
 
         if (numberOfWorkItems_ > 0)
         {
-            sink_->receiveMessage();
-
             if (numberOfWorkItems_ % 10 == 0)
                 qDebug() << numberOfWorkItems_;
             else

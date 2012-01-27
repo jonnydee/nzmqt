@@ -52,7 +52,7 @@ public:
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
         socket_ = context->createSocket(ZMQ_REQ);
-        connect(socket_, SIGNAL(readyRead()), SLOT(replyReceived()));
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
 
         timer_ = new QTimer(socket_);
         timer_->setSingleShot(true);
@@ -79,9 +79,8 @@ protected slots:
         socket_->sendMessage(request);
     }
 
-    void replyReceived()
+    void replyReceived(const QList<QByteArray>& reply)
     {
-        QList<QByteArray> reply = socket_->receiveMessage();
         qDebug() << "ReqRepClient::replyReceived> " << reply;
 
         // Start timer again in order to trigger the next sendRequest() call.

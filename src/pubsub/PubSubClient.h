@@ -49,7 +49,7 @@ public:
         nzmqt::ZMQContext* context = new nzmqt::ZMQContext(4, this);
 
         socket_ = context->createSocket(ZMQ_SUB);
-        connect(socket_, SIGNAL(readyRead()), SLOT(messageReceived()));
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 
     void run()
@@ -59,11 +59,9 @@ public:
     }
 
 protected slots:
-    void messageReceived()
+    void messageReceived(const QList<QByteArray>& message)
     {
-        QList< QList<QByteArray> > msgList = socket_->receiveMessages();
-        foreach (const QList<QByteArray> msg, msgList)
-            qDebug() << "PubSubClient> " << msg;
+        qDebug() << "PubSubClient> " << message;
     }
 
 private:
