@@ -37,3 +37,7 @@ INCLUDEPATH += \
 
 QMAKE_LIBDIR += \
     /opt/local/lib
+
+OTHER_FILES += \
+    ../README.markdown \
+    ../COPYING
