@@ -415,6 +415,8 @@ namespace nzmqt
         inline PollingZMQSocket(zmq::context_t* context_, int type_)
             : super(context_, type_) {}
 
+        // This method is called by the socket's context object in order
+        // to signal a new received message.
         inline void onMessageReceived(const QList<QByteArray>& message)
         {
             emit messageReceived(message);
@@ -439,6 +441,10 @@ namespace nzmqt
             setAutoDelete(false);
         }
 
+        // Sets the polling interval.
+        // Note that the interval does not denote the time the zmq::poll() function will
+        // block in order to wait for incoming messages. Instead, it denotes the time in-between
+        // consecutive zmq::poll() calls.
         inline void setInterval(int interval_)
         {
             m_interval = interval_;
@@ -449,12 +455,15 @@ namespace nzmqt
             return m_interval;
         }
 
+        // Starts the polling process by scheduling a call to the 'run()' method into Qt's event loop.
         inline void start()
         {
             m_stopped = false;
             QTimer::singleShot(0, this, SLOT(run()));
         }
 
+        // Stops the polling process in the sense that no further 'run()' calls will be scheduled into
+        // Qt's event loop.
         inline void stop()
         {
             m_stopped = true;
@@ -466,6 +475,9 @@ namespace nzmqt
         }
 
     public slots:
+        // If the polling process is not stopped (by a previous call to the 'stop()' method) this
+        // method will call the 'poll()' method once and re-schedule a subsequent call to this method
+        // using the current polling interval.
         inline void run()
         {
             if (m_stopped)
@@ -477,6 +489,11 @@ namespace nzmqt
                 QTimer::singleShot(m_interval, this, SLOT(run()));
         }
 
+        // This method will poll on all currently available poll-items (known ZMQ sockets)
+        // using the given timeout to wait for incoming messages. Note that this timeout has
+        // nothing to do with the polling interval. Instead, the poll method will block the current
+        // thread by waiting at most the specified amount of time for incoming messages.
+        // This method is public because it can be called directly if you need to.
         inline void poll(long timeout_ = 0)
         {
             QMutexLocker lock(&m_pollItemsMutex);
@@ -504,11 +521,15 @@ namespace nzmqt
         inline PollingZMQSocket* createSocketInternal(int type_)
         {
             PollingZMQSocket* socket = new PollingZMQSocket(this, type_);
+            // Make sure the socket is removed from the poll-item list as soon
+            // as it is destroyed.
             connect(socket, SIGNAL(destroyed(QObject*)), SLOT(unregisterSocket(QObject*)));
+            // Add the socket to the poll-item list.
             registerSocket(socket);
             return socket;
         }
 
+        // Add the given socket to list list of poll-items.
         inline void registerSocket(PollingZMQSocket* socket_)
         {
             pollitem_t pollItem = { *socket_, 0, ZMQ_POLLIN, 0 };
@@ -519,6 +540,7 @@ namespace nzmqt
         }
 
     protected slots:
+        // Remove the given socket object from the list of poll-items.
         inline void unregisterSocket(QObject* socket_)
         {
             QMutexLocker lock(&m_pollItemsMutex);
