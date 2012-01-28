@@ -41,7 +41,17 @@
 #include <QTimer>
 #include <QRunnable>
 
+// Define default number of IO threads to be used by ZMQ.
+#ifndef NZMQT_DEFAULT_IOTHREADS
+    #define NZMQT_DEFAULT_IOTHREADS 4
+#endif
 
+// Define default poll interval for polling-based implementation.
+#ifndef NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL
+    #define NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL 10 /* msec */
+#endif
+
+// Declare metatypes for using them in Qt signals.
 Q_DECLARE_METATYPE(QList< QList<QByteArray> >)
 Q_DECLARE_METATYPE(QList<QByteArray>)
 
@@ -421,9 +431,9 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        inline PollingZMQContext(int io_threads_, QObject* parent_ = 0)
+        inline PollingZMQContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
             : super(io_threads_, parent_),
-              m_interval(5),
+              m_interval(NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL),
               m_stopped(false)
         {
             setAutoDelete(false);
@@ -623,7 +633,7 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        inline SocketNotifierZMQContext(int io_threads_, QObject* parent_ = 0)
+        inline SocketNotifierZMQContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
             : super(io_threads_, parent_)
         {
         }
