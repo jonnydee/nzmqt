@@ -50,7 +50,7 @@ public:
     explicit PushPullVentilator(const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
         : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
     {
-        nzmqt::PollingZMQContext* context = new nzmqt::PollingZMQContext(4, this);
+        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(4, this);
         context->start();
 
         ventilator_ = context->createSocket(ZMQ_PUSH);

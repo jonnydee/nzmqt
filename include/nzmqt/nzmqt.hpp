@@ -41,6 +41,12 @@
 #include <QTimer>
 #include <QRunnable>
 
+// Define default context implementation to be used.
+#ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
+    //#define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION PollingZMQContext
+    #define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION SocketNotifierZMQContext
+#endif
+
 // Define default number of IO threads to be used by ZMQ.
 #ifndef NZMQT_DEFAULT_IOTHREADS
     #define NZMQT_DEFAULT_IOTHREADS 4
@@ -619,13 +625,23 @@ namespace nzmqt
 
         inline void onSocketActivity(quint32 flags_)
         {
-            if(flags_ & ZMQ_POLLIN) {
+            if(flags_ & ZMQ_POLLIN)
+            {
                 emit readyRead();
+
+                QList<QByteArray> message = receiveMessage();
+                emit messageReceived(message);
+
+//                QList< QList<QByteArray> > messages = receiveMessages();
+//                foreach (QList<QByteArray> message, messages)
+//                    emit messageReceived(message);
             }
-            if(flags_ & ZMQ_POLLOUT) {
+            if(flags_ & ZMQ_POLLOUT)
+            {
                 emit readyWrite();
             }
-            if(flags_ & ZMQ_POLLERR) {
+            if(flags_ & ZMQ_POLLERR)
+            {
                 emit pollError();
             }
         }
@@ -648,6 +664,7 @@ namespace nzmqt
         }
 
     signals:
+        void messageReceived(const QList<QByteArray>&);
         void readyRead();
         void readyWrite();
         void pollError();
@@ -688,6 +705,11 @@ namespace nzmqt
             return new SocketNotifierZMQSocket(this, type_);
         }
     };
+
+    inline ZMQContext* createDefaultContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
+    {
+        return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(io_threads_, parent_);
+    }
 }
 
 
