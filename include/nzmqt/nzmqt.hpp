@@ -612,7 +612,9 @@ namespace nzmqt
 
     protected:
         inline SocketNotifierZMQSocket(zmq::context_t* context_, int type_)
-            : super(context_, type_)
+            : super(context_, type_),
+              socketNotifyRead_(0),
+              socketNotifyWrite_(0)
         {
             int fd = fileDescriptor();
 
@@ -623,50 +625,47 @@ namespace nzmqt
             QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
         }
 
-        inline void onSocketActivity(quint32 flags_)
+    protected slots:
+        inline void socketReadActivity()
         {
+            socketNotifyRead_->setEnabled(false);
+
+            quint32 flags_ = flags();
+
             if(flags_ & ZMQ_POLLIN)
             {
-                emit readyRead();
-
                 QList<QByteArray> message = receiveMessage();
                 emit messageReceived(message);
+            }
+            socketNotifyRead_->setEnabled(true);
 
-//                QList< QList<QByteArray> > messages = receiveMessages();
-//                foreach (QList<QByteArray> message, messages)
-//                    emit messageReceived(message);
-            }
-            if(flags_ & ZMQ_POLLOUT)
-            {
-                emit readyWrite();
-            }
             if(flags_ & ZMQ_POLLERR)
             {
                 emit pollError();
             }
         }
 
-    protected slots:
-        inline void socketReadActivity()
-        {
-            quint32 flags_ = flags();
-            onSocketActivity(flags_);
-        }
-
         inline void socketWriteActivity()
         {
             quint32 flags_ = flags();
-            if (flags_ == 0)
+
+            if(flags_ & ZMQ_POLLOUT)
+            {
+                socketNotifyWrite_->setEnabled(true);
+            }
+            else
             {
                 socketNotifyWrite_->setEnabled(false);
             }
-            onSocketActivity(flags_);
+
+            if(flags_ & ZMQ_POLLERR)
+            {
+                emit pollError();
+            }
         }
 
     signals:
         void messageReceived(const QList<QByteArray>&);
-        void readyRead();
-        void readyWrite();
         void pollError();
 
     private:
