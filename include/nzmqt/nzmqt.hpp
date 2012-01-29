@@ -395,6 +395,15 @@ namespace nzmqt
             return socket;
         }
 
+        // Start watching for incoming messages.
+        virtual void start() = 0;
+
+        // Stop watching for incoming messages.
+        virtual void stop() = 0;
+
+        // Indicates if watching for incoming messages is enabled.
+        virtual bool isStopped() const = 0;
+
     protected:
         // Creates a socket instance of the specified type.
         virtual ZMQSocket* createSocketInternal(int type_) = 0;
@@ -658,6 +667,19 @@ namespace nzmqt
         inline SocketNotifierZMQContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
             : super(io_threads_, parent_)
         {
+        }
+
+        inline void start()
+        {
+        }
+
+        inline void stop()
+        {
+        }
+
+        inline bool isStopped() const
+        {
+            return false;
         }
 
     protected:
