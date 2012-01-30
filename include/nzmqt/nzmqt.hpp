@@ -622,6 +622,7 @@ namespace nzmqt
             QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
 
             socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
+            socketNotifyWrite_->setEnabled(false);
             QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
         }
 
@@ -630,43 +631,25 @@ namespace nzmqt
         {
             socketNotifyRead_->setEnabled(false);
 
-            quint32 flags_ = flags();
-
-            if(flags_ & ZMQ_POLLIN)
+            while(flags() & ZMQ_POLLIN)
             {
                 QList<QByteArray> message = receiveMessage();
                 emit messageReceived(message);
             }
-            socketNotifyRead_->setEnabled(true);
 
-            if(flags_ & ZMQ_POLLERR)
-            {
-                emit pollError();
-            }
+            socketNotifyRead_->setEnabled(true);
         }
 
         inline void socketWriteActivity()
         {
-            quint32 flags_ = flags();
-
-            if(flags_ & ZMQ_POLLOUT)
-            {
-                socketNotifyWrite_->setEnabled(true);
-            }
-            else
+            if(flags() == 0)
             {
                 socketNotifyWrite_->setEnabled(false);
-            }
-
-            if(flags_ & ZMQ_POLLERR)
-            {
-                emit pollError();
             }
         }
 
     signals:
         void messageReceived(const QList<QByteArray>&);
-        void pollError();
 
     private:
         QSocketNotifier *socketNotifyRead_;
