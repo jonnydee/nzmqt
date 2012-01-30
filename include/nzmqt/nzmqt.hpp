@@ -40,6 +40,7 @@
 #include <QMutexLocker>
 #include <QTimer>
 #include <QRunnable>
+#include <QFlag>
 
 // Define default context implementation to be used.
 #ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
@@ -136,9 +137,9 @@ namespace nzmqt
     public:
         enum ZMQEvent
         {
-            POLLIN = ZMQ_POLLIN,
-            POLLOUT = ZMQ_POLLOUT,
-            POLLERR = ZMQ_POLLERR,
+            EVT_POLLIN = ZMQ_POLLIN,
+            EVT_POLLOUT = ZMQ_POLLOUT,
+            EVT_POLLERR = ZMQ_POLLERR,
         };
         Q_DECLARE_FLAGS(ZMQEvents, ZMQEvent)
 
@@ -551,7 +552,7 @@ namespace nzmqt
             Sockets::iterator soIt = m_sockets.begin();
             while (poIt != m_pollItems.end())
             {
-                if (poIt->revents & ZMQ_POLLIN)
+                if (poIt->revents & ZMQSocket::EVT_POLLIN)
                 {
                     QList<QByteArray> message = (*soIt)->receiveMessage();
                     (*soIt)->onMessageReceived(message);
@@ -576,7 +577,7 @@ namespace nzmqt
         // Add the given socket to list list of poll-items.
         inline void registerSocket(PollingZMQSocket* socket_)
         {
-            pollitem_t pollItem = { *socket_, 0, ZMQ_POLLIN, 0 };
+            pollitem_t pollItem = { *socket_, 0, ZMQSocket::EVT_POLLIN, 0 };
 
             QMutexLocker lock(&m_pollItemsMutex);
             m_sockets.push_back(socket_);
@@ -660,7 +661,7 @@ namespace nzmqt
         {
             socketNotifyRead_->setEnabled(false);
 
-            while(events() & ZMQ_POLLIN)
+            while(events() & EVT_POLLIN)
             {
                 QList<QByteArray> message = receiveMessage();
                 emit messageReceived(message);
