@@ -126,11 +126,36 @@ namespace nzmqt
     class ZMQSocket : public QObject, private zmq::socket_t
     {
         Q_OBJECT
+        Q_FLAGS(ZMQEvent ZMQEvents)
+        Q_FLAGS(SendFlag SendFlags)
+        Q_FLAGS(ReceiveFlag ReceiveFlags)
 
         typedef QObject qsuper;
         typedef zmq::socket_t zmqsuper;
 
     public:
+        enum ZMQEvent
+        {
+            POLLIN = ZMQ_POLLIN,
+            POLLOUT = ZMQ_POLLOUT,
+            POLLERR = ZMQ_POLLERR,
+        };
+        Q_DECLARE_FLAGS(ZMQEvents, ZMQEvent)
+
+        enum SendFlag
+        {
+            SND_MORE = ZMQ_SNDMORE,
+            SND_NOBLOCK = ZMQ_NOBLOCK,
+        };
+        Q_DECLARE_FLAGS(SendFlags, SendFlag)
+
+        enum ReceiveFlag
+        {
+            RCV_NOBLOCK = ZMQ_NOBLOCK,
+        };
+        Q_DECLARE_FLAGS(ReceiveFlags, ReceiveFlag)
+
+
         using zmqsuper::operator void *;
 
         using zmqsuper::close;
@@ -180,12 +205,12 @@ namespace nzmqt
             zmqsuper::connect(addr_);
         }
 
-        inline bool sendMessage(ZMQMessage& msg_, int flags_ = ZMQ_NOBLOCK)
+        inline bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_NOBLOCK)
         {
             return send(msg_, flags_);
         }
 
-        inline bool sendMessage(const QByteArray& bytes_, int flags_ = ZMQ_NOBLOCK)
+        inline bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK)
         {
             ZMQMessage msg(bytes_);
             return send(msg, flags_);
@@ -194,12 +219,12 @@ namespace nzmqt
         // Interprets the provided list of byte arrays as a multi-part message
         // and sends them accordingly.
         // If an empty list is provided this method doesn't do anything and returns trua.
-        inline bool sendMessage(const QList<QByteArray>& msg_, int flags_ = ZMQ_NOBLOCK)
+        inline bool sendMessage(const QList<QByteArray>& msg_, SendFlags flags_ = SND_NOBLOCK)
         {
             int i;
             for (i = 0; i < msg_.size() - 1; i++)
             {
-                if (!sendMessage(msg_[i], flags_ | ZMQ_SNDMORE))
+                if (!sendMessage(msg_[i], flags_ | SND_MORE))
                     return false;
             }
             if (i < msg_.size())
@@ -209,7 +234,7 @@ namespace nzmqt
         }
 
         // Receives a message or a message part.
-        inline bool receiveMessage(ZMQMessage* msg_, int flags_ = ZMQ_NOBLOCK)
+        inline bool receiveMessage(ZMQMessage* msg_, ReceiveFlags flags_ = RCV_NOBLOCK)
         {
             return recv(msg_, flags_);
         }
@@ -263,12 +288,12 @@ namespace nzmqt
             return value;
         }
 
-        inline quint32 flags() const
+        inline ZMQEvents events() const
         {
             quint32 value;
             size_t size = sizeof(value);
             getOption(ZMQ_EVENTS, &value, &size);
-            return value;
+            return static_cast<ZMQEvents>(value);
         }
 
         // Returns true if there are more parts of a multi-part message
@@ -351,6 +376,10 @@ namespace nzmqt
         inline ZMQSocket(zmq::context_t* context_, int type_)
             : qsuper(0), zmqsuper(*context_, type_) {}
     };
+    Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::ZMQEvents)
+    Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::SendFlags)
+    Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::ReceiveFlags)
+
 
     // This class is an abstract base class for concrete implementations.
     class ZMQContext : public QObject, protected zmq::context_t
@@ -600,7 +629,7 @@ namespace nzmqt
     public:
         using super::sendMessage;
 
-        inline bool sendMessage(const QByteArray& bytes_, int flags_ = ZMQ_NOBLOCK)
+        inline bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK)
         {
             bool result = super::sendMessage(bytes_, flags_);
 
@@ -631,7 +660,7 @@ namespace nzmqt
         {
             socketNotifyRead_->setEnabled(false);
 
-            while(flags() & ZMQ_POLLIN)
+            while(events() & ZMQ_POLLIN)
             {
                 QList<QByteArray> message = receiveMessage();
                 emit messageReceived(message);
@@ -642,7 +671,7 @@ namespace nzmqt
 
         inline void socketWriteActivity()
         {
-            if(flags() == 0)
+            if(events() == 0)
             {
                 socketNotifyWrite_->setEnabled(false);
             }
