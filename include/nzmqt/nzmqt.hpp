@@ -43,8 +43,8 @@
 
 // Define default context implementation to be used.
 #ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
-    //#define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION PollingZMQContext
-    #define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION SocketNotifierZMQContext
+    #define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION PollingZMQContext
+    //#define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION SocketNotifierZMQContext
 #endif
 
 // Define default number of IO threads to be used by ZMQ.
