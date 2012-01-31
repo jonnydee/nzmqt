@@ -51,7 +51,7 @@ public:
         nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
-        sink_ = context->createSocket(ZMQ_PULL);
+        sink_ = context->createSocket(nzmqt::ZMQSocket::TYP_PULL);
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 

@@ -53,9 +53,9 @@ public:
         nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
-        ventilator_ = context->createSocket(ZMQ_PUSH);
+        ventilator_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUSH);
 
-        sink_ = context->createSocket(ZMQ_PUSH);
+        sink_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUSH);
     }
 
     void run()

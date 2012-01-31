@@ -49,7 +49,7 @@ public:
         nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(ZMQ_SUB);
+        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_SUB);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 

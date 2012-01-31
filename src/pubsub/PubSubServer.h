@@ -51,7 +51,7 @@ public:
         nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(ZMQ_PUB);
+        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUB);
     }
 
     void run()

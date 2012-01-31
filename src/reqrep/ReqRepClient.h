@@ -52,7 +52,7 @@ public:
         nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(ZMQ_REQ);
+        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_REQ);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
 
         timer_ = new QTimer(socket_);

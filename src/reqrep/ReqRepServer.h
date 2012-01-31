@@ -55,7 +55,7 @@ public:
         nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(ZMQ_REP);
+        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_REP);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
 
         socket_->bindTo(address_);
