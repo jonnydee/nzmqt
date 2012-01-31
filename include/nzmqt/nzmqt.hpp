@@ -127,7 +127,7 @@ namespace nzmqt
     class ZMQSocket : public QObject, private zmq::socket_t
     {
         Q_OBJECT
-        Q_ENUMS(SocketType ZMQEvent SendFlag ReceiveFlag)
+        Q_ENUMS(Type ZMQEvent SendFlag ReceiveFlag)
         Q_FLAGS(ZMQEvent ZMQEvents)
         Q_FLAGS(SendFlag SendFlags)
         Q_FLAGS(ReceiveFlag ReceiveFlags)
@@ -136,7 +136,7 @@ namespace nzmqt
         typedef zmq::socket_t zmqsuper;
 
     public:
-        enum SocketType
+        enum Type
         {
             TYP_PUB = ZMQ_PUB,
             TYP_SUB = ZMQ_SUB,
@@ -427,7 +427,7 @@ namespace nzmqt
         // but then you need to make sure the socket instance is deleted
         // before its context. Otherwise, you might encounter blocking
         // behavior.
-        inline ZMQSocket* createSocket(ZMQSocket::SocketType type_)
+        inline ZMQSocket* createSocket(ZMQSocket::Type type_)
         {
             return createSocket(type_, this);
         }
@@ -438,7 +438,7 @@ namespace nzmqt
         // ownership later on, but then you need to make sure the socket
         // instance is deleted before its context. Otherwise, you might
         // encounter blocking behavior.
-        inline ZMQSocket* createSocket(ZMQSocket::SocketType type_, QObject* parent_)
+        inline ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_)
         {
             ZMQSocket* socket = createSocketInternal(type_);
             socket->setParent(parent_);
@@ -456,7 +456,7 @@ namespace nzmqt
 
     protected:
         // Creates a socket instance of the specified type.
-        virtual ZMQSocket* createSocketInternal(ZMQSocket::SocketType type_) = 0;
+        virtual ZMQSocket* createSocketInternal(ZMQSocket::Type type_) = 0;
     };
 
 
@@ -471,7 +471,7 @@ namespace nzmqt
         friend class PollingZMQContext;
 
     protected:
-        inline PollingZMQSocket(zmq::context_t* context_, ZMQSocket::SocketType type_)
+        inline PollingZMQSocket(zmq::context_t* context_, ZMQSocket::Type type_)
             : super(context_, type_) {}
 
         // This method is called by the socket's context object in order
@@ -577,7 +577,7 @@ namespace nzmqt
         }
 
     protected:
-        inline PollingZMQSocket* createSocketInternal(ZMQSocket::SocketType type_)
+        inline PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_)
         {
             PollingZMQSocket* socket = new PollingZMQSocket(this, type_);
             // Make sure the socket is removed from the poll-item list as soon
@@ -655,7 +655,7 @@ namespace nzmqt
         }
 
     protected:
-        inline SocketNotifierZMQSocket(zmq::context_t* context_, ZMQSocket::SocketType type_)
+        inline SocketNotifierZMQSocket(zmq::context_t* context_, ZMQSocket::Type type_)
             : super(context_, type_),
               socketNotifyRead_(0),
               socketNotifyWrite_(0)
@@ -726,7 +726,7 @@ namespace nzmqt
         }
 
     protected:
-        inline SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::SocketType type_)
+        inline SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_)
         {
             return new SocketNotifierZMQSocket(this, type_);
         }
