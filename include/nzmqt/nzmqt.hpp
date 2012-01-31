@@ -391,7 +391,7 @@ namespace nzmqt
         typedef zmq::context_t zmqsuper;
 
     public:
-        inline ZMQContext(int io_threads_, QObject* parent_ = 0)
+        inline ZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
             : qsuper(parent_), zmqsuper(io_threads_) {}
 
         // Deleting children is necessary, because otherwise the children are deleted after the context
@@ -478,8 +478,8 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        inline PollingZMQContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
-            : super(io_threads_, parent_),
+        inline PollingZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
+            : super(parent_, io_threads_),
               m_interval(NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL),
               m_stopped(false)
         {
@@ -693,8 +693,8 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        inline SocketNotifierZMQContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
-            : super(io_threads_, parent_)
+        inline SocketNotifierZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
+            : super(parent_, io_threads_)
         {
         }
 
@@ -718,9 +718,9 @@ namespace nzmqt
         }
     };
 
-    inline ZMQContext* createDefaultContext(int io_threads_ = NZMQT_DEFAULT_IOTHREADS, QObject* parent_ = 0)
+    inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
     {
-        return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(io_threads_, parent_);
+        return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(parent_, io_threads_);
     }
 }
 

@@ -48,7 +48,7 @@ public:
     explicit PushPullSink(const QString& sinkAddress, QObject *parent)
         : super(parent), sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(4, this);
+        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
         sink_ = context->createSocket(ZMQ_PULL);

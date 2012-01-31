@@ -48,7 +48,7 @@ public:
     explicit PubSubServer(const QString& address, const QString& topic, QObject* parent)
         : super(parent), address_(address), topic_(topic)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(4, this);
+        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
         socket_ = context->createSocket(ZMQ_PUB);

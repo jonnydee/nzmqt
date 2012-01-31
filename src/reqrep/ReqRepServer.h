@@ -52,7 +52,7 @@ public:
 
     void run()
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(4, this);
+        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
         context->start();
 
         socket_ = context->createSocket(ZMQ_REP);
