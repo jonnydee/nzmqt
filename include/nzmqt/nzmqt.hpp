@@ -128,7 +128,7 @@ namespace nzmqt
     {
         Q_OBJECT
         Q_ENUMS(Type Event SendFlag ReceiveFlag)
-        Q_FLAGS(Event ZMQEvents)
+        Q_FLAGS(Event Events)
         Q_FLAGS(SendFlag SendFlags)
         Q_FLAGS(ReceiveFlag ReceiveFlags)
 
