@@ -29,10 +29,9 @@
 
 // For sleep.
 #ifdef Q_OS_WIN
-#include <windows.h>
-#endif
-#ifdef Q_OS_UNIX
-#include <time.h>
+ #include <windows.h>
+#else
+ #include <time.h>
 #endif
 
 
@@ -45,7 +44,7 @@ namespace samples
 inline void sleep(int msec)
 {
 #ifdef Q_OS_WIN
-    Sleep(uint(ms));
+    Sleep(uint(msec));
 #else
     struct timespec ts = { msec / 1000, (msec % 1000) * 1000 * 1000 };
     nanosleep(&ts, NULL);
