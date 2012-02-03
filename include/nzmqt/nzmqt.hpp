@@ -147,6 +147,8 @@ namespace nzmqt
             TYP_DEALER = ZMQ_DEALER,
             TYP_ROUTER = ZMQ_ROUTER,
             TYP_PAIR = ZMQ_PAIR,
+            TYP_XPUB = ZMQ_XPUB,
+            TYP_XSUB = ZMQ_XSUB,
         };
 
         enum Event
