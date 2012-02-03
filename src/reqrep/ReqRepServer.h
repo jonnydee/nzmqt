@@ -38,6 +38,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class ReqRepServer : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -52,10 +58,10 @@ public:
 
     void run()
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_REP);
+        socket_ = context->createSocket(ZMQSocket::TYP_REP);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
 
         socket_->bindTo(address_);
@@ -80,7 +86,11 @@ private:
     QString address_;
     QString replyMsg_;
 
-    nzmqt::ZMQSocket* socket_;
+    ZMQSocket* socket_;
 };
+
+}
+
+}
 
 #endif // REQREPSERVER_H

@@ -39,6 +39,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class ReqRepClient : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -49,10 +55,10 @@ public:
     explicit ReqRepClient(const QString& address, const QString& requestMsg, QObject *parent)
         : super(parent), address_(address), requestMsg_(requestMsg)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_REQ);
+        socket_ = context->createSocket(ZMQSocket::TYP_REQ);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
 
         timer_ = new QTimer(socket_);
@@ -92,8 +98,12 @@ private:
     QString address_;
     QString requestMsg_;
 
-    nzmqt::ZMQSocket* socket_;
+    ZMQSocket* socket_;
     QTimer* timer_;
 };
+
+}
+
+}
 
 #endif // REQREPCLIENT_H

@@ -38,6 +38,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class PushPullSink : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -48,10 +54,10 @@ public:
     explicit PushPullSink(const QString& sinkAddress, QObject *parent)
         : super(parent), sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        sink_ = context->createSocket(nzmqt::ZMQSocket::TYP_PULL);
+        sink_ = context->createSocket(ZMQSocket::TYP_PULL);
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 
@@ -95,9 +101,13 @@ protected slots:
 private:
     QString sinkAddress_;
 
-    nzmqt::ZMQSocket* sink_;
+    ZMQSocket* sink_;
     int numberOfWorkItems_;
     QTime stopWatch_;
 };
+
+}
+
+}
 
 #endif // PUSHPULLSINK_H

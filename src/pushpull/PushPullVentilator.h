@@ -40,6 +40,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class PushPullVentilator : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -50,12 +56,12 @@ public:
     explicit PushPullVentilator(const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
         : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        ventilator_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUSH);
+        ventilator_ = context->createSocket(ZMQSocket::TYP_PUSH);
 
-        sink_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUSH);
+        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
     }
 
     void run()
@@ -101,8 +107,12 @@ private:
     QString sinkAddress_;
     quint32 numberOfWorkItems_;
 
-    nzmqt::ZMQSocket* ventilator_;
-    nzmqt::ZMQSocket* sink_;
+    ZMQSocket* ventilator_;
+    ZMQSocket* sink_;
 };
+
+}
+
+}
 
 #endif // PUSHPULLVENTILATOR_H

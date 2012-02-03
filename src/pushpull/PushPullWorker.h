@@ -39,6 +39,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class PushPullWorker : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -49,13 +55,13 @@ public:
     explicit PushPullWorker(const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
         : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        ventilator_ = context->createSocket(nzmqt::ZMQSocket::TYP_PULL);
+        ventilator_ = context->createSocket(ZMQSocket::TYP_PULL);
         connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
 
-        sink_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUSH);
+        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
     }
 
     void run()
@@ -81,8 +87,8 @@ private:
     QString ventilatorAddress_;
     QString sinkAddress_;
 
-    nzmqt::ZMQSocket* ventilator_;
-    nzmqt::ZMQSocket* sink_;
+    ZMQSocket* ventilator_;
+    ZMQSocket* sink_;
 
     static inline void sleep(unsigned msec)
     {
@@ -91,5 +97,9 @@ private:
         wc.wait(&mutex, msec);
     }
 };
+
+}
+
+}
 
 #endif // PUSHPULLWORKER_H

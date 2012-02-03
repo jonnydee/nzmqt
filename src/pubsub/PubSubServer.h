@@ -38,6 +38,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class PubSubServer : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -48,10 +54,10 @@ public:
     explicit PubSubServer(const QString& address, const QString& topic, QObject* parent)
         : super(parent), address_(address), topic_(topic)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_PUB);
+        socket_ = context->createSocket(ZMQSocket::TYP_PUB);
     }
 
     void run()
@@ -80,7 +86,11 @@ private:
     QString address_;
     QString topic_;
 
-    nzmqt::ZMQSocket* socket_;
+    ZMQSocket* socket_;
 };
+
+}
+
+}
 
 #endif // PUBSUBSERVER_H

@@ -36,6 +36,12 @@
 #include "nzmqt/nzmqt.hpp"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class PubSubClient : public QObject, public QRunnable
 {
     Q_OBJECT
@@ -46,10 +52,10 @@ public:
     explicit PubSubClient(const QString& address, const QString& topic, QObject *parent)
         : super(parent), address_(address), topic_(topic)
     {
-        nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+        ZMQContext* context = createDefaultContext(this);
         context->start();
 
-        socket_ = context->createSocket(nzmqt::ZMQSocket::TYP_SUB);
+        socket_ = context->createSocket(ZMQSocket::TYP_SUB);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 
@@ -69,7 +75,11 @@ private:
     QString address_;
     QString topic_;
 
-    nzmqt::ZMQSocket* socket_;
+    ZMQSocket* socket_;
 };
+
+}
+
+}
 
 #endif // PUBSUBCLIENT_H

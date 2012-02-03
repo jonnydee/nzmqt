@@ -45,6 +45,12 @@
 #include "pushpull/PushPullSink.h"
 
 
+namespace nzmqt
+{
+
+namespace samples
+{
+
 class NzmqtApp : public QCoreApplication
 {
     Q_OBJECT
@@ -200,5 +206,9 @@ Push-Pull Sample:\n\
 \n").arg(executable);
     }
 };
+
+}
+
+}
 
 #endif // TESTAPP_H

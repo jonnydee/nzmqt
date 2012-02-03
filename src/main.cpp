@@ -28,9 +28,10 @@
 
 #include "NzmqtApp.h"
 
+
 int main(int argc, char *argv[])
 {
-    NzmqtApp nzmqtApp(argc, argv);
+    nzmqt::samples::NzmqtApp nzmqtApp(argc, argv);
 
     return nzmqtApp.exec();
 }
