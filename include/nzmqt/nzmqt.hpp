@@ -127,8 +127,8 @@ namespace nzmqt
     class ZMQSocket : public QObject, private zmq::socket_t
     {
         Q_OBJECT
-        Q_ENUMS(Type ZMQEvent SendFlag ReceiveFlag)
-        Q_FLAGS(ZMQEvent ZMQEvents)
+        Q_ENUMS(Type Event SendFlag ReceiveFlag)
+        Q_FLAGS(Event ZMQEvents)
         Q_FLAGS(SendFlag SendFlags)
         Q_FLAGS(ReceiveFlag ReceiveFlags)
 
@@ -149,13 +149,13 @@ namespace nzmqt
             TYP_PAIR = ZMQ_PAIR,
         };
 
-        enum ZMQEvent
+        enum Event
         {
             EVT_POLLIN = ZMQ_POLLIN,
             EVT_POLLOUT = ZMQ_POLLOUT,
             EVT_POLLERR = ZMQ_POLLERR,
         };
-        Q_DECLARE_FLAGS(ZMQEvents, ZMQEvent)
+        Q_DECLARE_FLAGS(Events, Event)
 
         enum SendFlag
         {
@@ -303,12 +303,12 @@ namespace nzmqt
             return value;
         }
 
-        inline ZMQEvents events() const
+        inline Events events() const
         {
             quint32 value;
             size_t size = sizeof(value);
             getOption(ZMQ_EVENTS, &value, &size);
-            return static_cast<ZMQEvents>(value);
+            return static_cast<Events>(value);
         }
 
         // Returns true if there are more parts of a multi-part message
@@ -391,7 +391,7 @@ namespace nzmqt
         inline ZMQSocket(zmq::context_t* context_, int type_)
             : qsuper(0), zmqsuper(*context_, type_) {}
     };
-    Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::ZMQEvents)
+    Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::Events)
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::SendFlags)
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::ReceiveFlags)
 
