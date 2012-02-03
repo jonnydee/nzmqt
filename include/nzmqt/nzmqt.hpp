@@ -127,7 +127,7 @@ namespace nzmqt
     class ZMQSocket : public QObject, private zmq::socket_t
     {
         Q_OBJECT
-        Q_ENUMS(Type Event SendFlag ReceiveFlag)
+        Q_ENUMS(Type Event SendFlag ReceiveFlag Option)
         Q_FLAGS(Event Events)
         Q_FLAGS(SendFlag SendFlags)
         Q_FLAGS(ReceiveFlag ReceiveFlags)
@@ -170,32 +170,60 @@ namespace nzmqt
         };
         Q_DECLARE_FLAGS(ReceiveFlags, ReceiveFlag)
 
+        enum Option
+        {
+            // Get only.
+            OPT_TYPE = ZMQ_TYPE,
+            OPT_RCVMORE = ZMQ_RCVMORE,
+            OPT_FD = ZMQ_FD,
+            OPT_EVENTS = ZMQ_EVENTS,
+
+            // Set only.
+            OPT_SUBSCRIBE = ZMQ_SUBSCRIBE,
+            OPT_UNSUBSCRIBE = ZMQ_UNSUBSCRIBE,
+
+            // Get and set.
+            OPT_HWM = ZMQ_HWM,
+            OPT_SWAP = ZMQ_SWAP,
+            OPT_AFFINITY = ZMQ_AFFINITY,
+            OPT_IDENTITY = ZMQ_IDENTITY,
+            OPT_RATE = ZMQ_RATE,
+            OPT_RECOVERY_IVL = ZMQ_RECOVERY_IVL,
+            OPT_RECOVERY_IVL_MSEC = ZMQ_RECOVERY_IVL_MSEC,
+            OPT_MCAST_LOOP = ZMQ_MCAST_LOOP,
+            OPT_SNDBUF = ZMQ_SNDBUF,
+            OPT_RCVBUF = ZMQ_RCVBUF,
+            OPT_LINGER = ZMQ_LINGER,
+            OPT_RECONNECT_IVL = ZMQ_RECONNECT_IVL,
+            OPT_RECONNECT_IVL_MAX = ZMQ_RECONNECT_IVL_MAX,
+            OPT_BACKLOG = ZMQ_BACKLOG,
+        };
 
         using zmqsuper::operator void *;
 
         using zmqsuper::close;
 
-        inline void setOption(int option_, const void *optionVal_, size_t optionValLen_)
+        inline void setOption(Option optName_, const void *optionVal_, size_t optionValLen_)
         {
-            setsockopt(option_, optionVal_, optionValLen_);
+            setsockopt(optName_, optionVal_, optionValLen_);
         }
 
-        inline void setOption(int optName_, const char* str_)
+        inline void setOption(Option optName_, const char* str_)
         {
             setOption(optName_, str_, strlen(str_));
         }
 
-        inline void setOption(int optName_, const QByteArray& bytes_)
+        inline void setOption(Option optName_, const QByteArray& bytes_)
         {
             setOption(optName_, bytes_.constData(), bytes_.size());
         }
 
-        inline void setOption(int optName_, int value_)
+        inline void setOption(Option optName_, int value_)
         {
             setOption(optName_, &value_, sizeof(value_));
         }
 
-        inline void getOption(int option_, void *optval_, size_t *optvallen_) const
+        inline void getOption(Option option_, void *optval_, size_t *optvallen_) const
         {
             const_cast<ZMQSocket*>(this)->getsockopt(option_, optval_, optvallen_);
         }
@@ -299,7 +327,7 @@ namespace nzmqt
         {
             int value;
             size_t size = sizeof(value);
-            getOption(ZMQ_FD, &value, &size);
+            getOption(OPT_FD, &value, &size);
             return value;
         }
 
@@ -307,7 +335,7 @@ namespace nzmqt
         {
             quint32 value;
             size_t size = sizeof(value);
-            getOption(ZMQ_EVENTS, &value, &size);
+            getOption(OPT_EVENTS, &value, &size);
             return static_cast<Events>(value);
         }
 
@@ -317,74 +345,74 @@ namespace nzmqt
         {
             quint64 value;
             size_t size = sizeof(value);
-            getOption(ZMQ_RCVMORE, &value, &size);
+            getOption(OPT_RCVMORE, &value, &size);
             return value;
         }
 
         inline void setIdentity(const char* nameStr_)
         {
-            setOption(ZMQ_IDENTITY, nameStr_);
+            setOption(OPT_IDENTITY, nameStr_);
         }
 
         inline void setIdentity(const QString& name_)
         {
-            setOption(ZMQ_IDENTITY, name_.toLocal8Bit());
+            setOption(OPT_IDENTITY, name_.toLocal8Bit());
         }
 
         inline void setIdentity(const QByteArray& name_)
         {
-            setOption(ZMQ_IDENTITY, const_cast<char*>(name_.constData()), name_.size());
+            setOption(OPT_IDENTITY, const_cast<char*>(name_.constData()), name_.size());
         }
 
         inline QByteArray identity() const
         {
             char idbuf[256];
             size_t size = sizeof(idbuf);
-            getOption(ZMQ_IDENTITY, idbuf, &size);
+            getOption(OPT_IDENTITY, idbuf, &size);
             return QByteArray(idbuf, size);
         }
 
         inline void setLinger(int msec_)
         {
-            setOption(ZMQ_LINGER, msec_);
+            setOption(OPT_LINGER, msec_);
         }
 
         inline int linger() const
         {
             int msec=-1;
             size_t size = sizeof(msec);
-            getOption(ZMQ_LINGER, &msec, &size);
+            getOption(OPT_LINGER, &msec, &size);
             return msec;
         }
 
         inline void subscribeTo(const char* filterStr_)
         {
-            setOption(ZMQ_SUBSCRIBE, filterStr_);
+            setOption(OPT_SUBSCRIBE, filterStr_);
         }
 
         inline void subscribeTo(const QString& filter_)
         {
-            setOption(ZMQ_SUBSCRIBE, filter_.toLocal8Bit());
+            setOption(OPT_SUBSCRIBE, filter_.toLocal8Bit());
         }
 
         inline void subscribeTo(const QByteArray& filter_)
         {
-            setOption(ZMQ_SUBSCRIBE, filter_);
+            setOption(OPT_SUBSCRIBE, filter_);
         }
 
         inline void unsubscribeFrom(const char* filterStr_)
         {
-            setOption(ZMQ_UNSUBSCRIBE, filterStr_);
+            setOption(OPT_UNSUBSCRIBE, filterStr_);
         }
 
         inline void unsubscribeFrom(const QString& filter_)
         {
-            setOption(ZMQ_UNSUBSCRIBE, filter_.toLocal8Bit());
+            setOption(OPT_UNSUBSCRIBE, filter_.toLocal8Bit());
         }
 
         inline void unsubscribeFrom(const QByteArray& filter_)
         {
-            setOption(ZMQ_UNSUBSCRIBE, filter_);
+            setOption(OPT_UNSUBSCRIBE, filter_);
         }
 
     protected:
