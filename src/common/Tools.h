@@ -24,19 +24,16 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUSHPULLWORKER_H
-#define PUSHPULLWORKER_H
+#ifndef TOOLS_H
+#define TOOLS_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
-#include <QByteArray>
-#include <QTimer>
-
-#include "nzmqt/nzmqt.hpp"
-
-#include "common/Tools.h" // For sleep() function.
+// For sleep.
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+#ifdef Q_OS_UNIX
+#include <time.h>
+#endif
 
 
 namespace nzmqt
@@ -45,54 +42,18 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullWorker : public QObject, public QRunnable
+inline void sleep(int msec)
 {
-    Q_OBJECT
-
-    typedef QObject super;
-
-public:
-    explicit PushPullWorker(const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
-    {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        ventilator_ = context->createSocket(ZMQSocket::TYP_PULL);
-        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
-    }
-
-    void run()
-    {
-        sink_->connectTo(sinkAddress_);
-        ventilator_->connectTo(ventilatorAddress_);
-    }
-
-protected slots:
-    void workAvailable(const QList<QByteArray>& message)
-    {
-        quint32 work = QString(message[0]).toUInt();
-
-        // Do the work ;-)
-        qDebug() << "snore" << work << "msec";
-        sleep(work);
-
-        // Send results to sink.
-        sink_->sendMessage("");
-    }
-
-private:
-    QString ventilatorAddress_;
-    QString sinkAddress_;
-
-    ZMQSocket* ventilator_;
-    ZMQSocket* sink_;
-};
+#ifdef Q_OS_WIN
+    Sleep(uint(ms));
+#else
+    struct timespec ts = { msec / 1000, (msec % 1000) * 1000 * 1000 };
+    nanosleep(&ts, NULL);
+#endif
+}
 
 }
 
 }
 
-#endif // PUSHPULLWORKER_H
+#endif // TOOLS_H

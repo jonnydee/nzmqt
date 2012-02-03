@@ -27,7 +27,8 @@ HEADERS += \
     pushpull/PushPullWorker.h \
     pushpull/PushPullVentilator.h \
     pushpull/PushPullSink.h \
-    NzmqtApp.h
+    NzmqtApp.h \
+    common/Tools.h
 
 LIBS += -lzmq
 
