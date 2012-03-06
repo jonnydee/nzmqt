@@ -120,6 +120,8 @@ namespace nzmqt
         }
     };
 
+    class ZMQContext;
+
     // This class cannot be instantiated. Its purpose is to serve as an
     // intermediate base class that provides Qt-based convenience methods
     // to subclasses.
@@ -417,8 +419,7 @@ namespace nzmqt
         }
 
     protected:
-        inline ZMQSocket(zmq::context_t* context_, int type_)
-            : qsuper(0), zmqsuper(*context_, type_) {}
+        ZMQSocket(ZMQContext* context_, Type type_);
     };
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::Events)
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::SendFlags)
@@ -426,12 +427,14 @@ namespace nzmqt
 
 
     // This class is an abstract base class for concrete implementations.
-    class ZMQContext : public QObject, protected zmq::context_t
+    class ZMQContext : public QObject, private zmq::context_t
     {
         Q_OBJECT
 
         typedef QObject qsuper;
         typedef zmq::context_t zmqsuper;
+
+        friend class ZMQSocket;
 
     public:
         inline ZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
@@ -489,6 +492,12 @@ namespace nzmqt
     };
 
 
+    inline ZMQSocket::ZMQSocket(ZMQContext* context_, Type type_)
+        : qsuper(0), zmqsuper(*context_, type_)
+    {
+    }
+
+
     class ZMQDevice : public QObject, public QRunnable
     {
         Q_OBJECT
@@ -530,7 +539,7 @@ namespace nzmqt
         friend class PollingZMQContext;
 
     protected:
-        inline PollingZMQSocket(zmq::context_t* context_, ZMQSocket::Type type_)
+        inline PollingZMQSocket(ZMQContext* context_, ZMQSocket::Type type_)
             : super(context_, type_) {}
 
         // This method is called by the socket's context object in order
@@ -714,7 +723,7 @@ namespace nzmqt
         }
 
     protected:
-        inline SocketNotifierZMQSocket(zmq::context_t* context_, ZMQSocket::Type type_)
+        inline SocketNotifierZMQSocket(ZMQContext* context_, ZMQSocket::Type type_)
             : super(context_, type_),
               socketNotifyRead_(0),
               socketNotifyWrite_(0)
