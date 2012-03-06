@@ -425,36 +425,6 @@ namespace nzmqt
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::ReceiveFlags)
 
 
-    class ZMQDevice : public QObject, public QRunnable
-    {
-        Q_OBJECT
-        Q_ENUMS(Type)
-
-    public:
-        enum Type
-        {
-            TYP_QUEUE = ZMQ_QUEUE,
-            TYP_FORWARDED = ZMQ_FORWARDER,
-            TYP_STREAMER = ZMQ_STREAMER,
-        };
-
-        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
-            : type_(type), frontend_(frontend), backend_(backend)
-        {
-        }
-
-        inline void run()
-        {
-            zmq::device(type_, *frontend_, *backend_);
-        }
-
-    private:
-        Type type_;
-        ZMQSocket* frontend_;
-        ZMQSocket* backend_;
-    };
-
-
     // This class is an abstract base class for concrete implementations.
     class ZMQContext : public QObject, protected zmq::context_t
     {
@@ -516,6 +486,36 @@ namespace nzmqt
     protected:
         // Creates a socket instance of the specified type.
         virtual ZMQSocket* createSocketInternal(ZMQSocket::Type type_) = 0;
+    };
+
+
+    class ZMQDevice : public QObject, public QRunnable
+    {
+        Q_OBJECT
+        Q_ENUMS(Type)
+
+    public:
+        enum Type
+        {
+            TYP_QUEUE = ZMQ_QUEUE,
+            TYP_FORWARDED = ZMQ_FORWARDER,
+            TYP_STREAMER = ZMQ_STREAMER,
+        };
+
+        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
+            : type_(type), frontend_(frontend), backend_(backend)
+        {
+        }
+
+        inline void run()
+        {
+            zmq::device(type_, *frontend_, *backend_);
+        }
+
+    private:
+        Type type_;
+        ZMQSocket* frontend_;
+        ZMQSocket* backend_;
     };
 
 
