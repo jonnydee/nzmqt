@@ -539,7 +539,7 @@ namespace nzmqt
         friend class PollingZMQContext;
 
     protected:
-        inline PollingZMQSocket(ZMQContext* context_, ZMQSocket::Type type_)
+        inline PollingZMQSocket(ZMQContext* context_, Type type_)
             : super(context_, type_) {}
 
         // This method is called by the socket's context object in order
@@ -735,7 +735,7 @@ namespace nzmqt
         }
 
     protected:
-        inline SocketNotifierZMQSocket(ZMQContext* context_, ZMQSocket::Type type_)
+        inline SocketNotifierZMQSocket(ZMQContext* context_, Type type_)
             : super(context_, type_),
               socketNotifyRead_(0),
               socketNotifyWrite_(0)
