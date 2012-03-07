@@ -721,33 +721,33 @@ namespace nzmqt
 
         typedef ZMQSocket super;
 
-    public:
-        using super::sendMessage;
+//    public:
+//        using super::sendMessage;
 
-        inline bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK)
-        {
-            bool result = super::sendMessage(bytes_, flags_);
+//        inline bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK)
+//        {
+//            bool result = super::sendMessage(bytes_, flags_);
 
-            if (!result)
-                socketNotifyWrite_->setEnabled(true);
+//            if (!result)
+//                socketNotifyWrite_->setEnabled(true);
 
-            return result;
-        }
+//            return result;
+//        }
 
     protected:
         inline SocketNotifierZMQSocket(ZMQContext* context_, Type type_)
             : super(context_, type_),
-              socketNotifyRead_(0),
-              socketNotifyWrite_(0)
+              socketNotifyRead_(0)
+//              socketNotifyWrite_(0)
         {
             int fd = fileDescriptor();
 
             socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
             QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
 
-            socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
-            socketNotifyWrite_->setEnabled(false);
-            QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
+//            socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
+//            socketNotifyWrite_->setEnabled(false);
+//            QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
         }
 
     protected slots:
@@ -764,20 +764,20 @@ namespace nzmqt
             socketNotifyRead_->setEnabled(true);
         }
 
-        inline void socketWriteActivity()
-        {
-            if(events() == 0)
-            {
-                socketNotifyWrite_->setEnabled(false);
-            }
-        }
+//        inline void socketWriteActivity()
+//        {
+//            if(events() == 0)
+//            {
+//                socketNotifyWrite_->setEnabled(false);
+//            }
+//        }
 
     signals:
         void messageReceived(const QList<QByteArray>&);
 
     private:
         QSocketNotifier *socketNotifyRead_;
-        QSocketNotifier *socketNotifyWrite_;
+//        QSocketNotifier *socketNotifyWrite_;
     };
 
     class SocketNotifierZMQContext : public ZMQContext
