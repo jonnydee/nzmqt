@@ -562,10 +562,20 @@ namespace nzmqt
     public:
         inline PollingZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
             : super(parent_, io_threads_),
+              m_pollItemsMutex(QMutex::Recursive),
               m_interval(NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL),
               m_stopped(false)
         {
             setAutoDelete(false);
+        }
+
+        inline virtual ~PollingZMQContext()
+        {
+            QMutexLocker lock(&m_pollItemsMutex);
+
+            Sockets list = m_sockets;
+            for (Sockets::iterator soIt = list.begin(); soIt != list.end(); soIt++)
+                unregisterSocket(*soIt);
         }
 
         // Sets the polling interval.
@@ -648,9 +658,6 @@ namespace nzmqt
         inline PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_)
         {
             PollingZMQSocket* socket = new PollingZMQSocket(this, type_);
-            // Make sure the socket is removed from the poll-item list as soon
-            // as it is destroyed.
-            connect(socket, SIGNAL(destroyed(QObject*)), SLOT(unregisterSocket(QObject*)));
             // Add the socket to the poll-item list.
             registerSocket(socket);
             return socket;
@@ -659,6 +666,10 @@ namespace nzmqt
         // Add the given socket to list list of poll-items.
         inline void registerSocket(PollingZMQSocket* socket_)
         {
+            // Make sure the socket is removed from the poll-item list as soon
+            // as it is destroyed.
+            connect(socket_, SIGNAL(destroyed(QObject*)), SLOT(unregisterSocket(QObject*)));
+
             pollitem_t pollItem = { *socket_, 0, ZMQSocket::EVT_POLLIN, 0 };
 
             QMutexLocker lock(&m_pollItemsMutex);
@@ -678,6 +689,7 @@ namespace nzmqt
             {
                 if (*soIt == socket_)
                 {
+                    socket_->disconnect(this);
                     m_sockets.erase(soIt);
                     m_pollItems.erase(poIt);
                     break;
