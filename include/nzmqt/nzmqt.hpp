@@ -221,7 +221,22 @@ namespace nzmqt
             setOption(optName_, bytes_.constData(), bytes_.size());
         }
 
-        inline void setOption(Option optName_, int value_)
+        inline void setOption(Option optName_, qint32 value_)
+        {
+            setOption(optName_, &value_, sizeof(value_));
+        }
+
+        inline void setOption(Option optName_, quint32 value_)
+        {
+            setOption(optName_, &value_, sizeof(value_));
+        }
+
+        inline void setOption(Option optName_, qint64 value_)
+        {
+            setOption(optName_, &value_, sizeof(value_));
+        }
+
+        inline void setOption(Option optName_, quint64 value_)
         {
             setOption(optName_, &value_, sizeof(value_));
         }
