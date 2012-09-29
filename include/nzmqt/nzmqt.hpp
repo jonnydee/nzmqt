@@ -361,7 +361,7 @@ namespace nzmqt
         // to be received.
         inline bool hasMoreMessageParts() const
         {
-            quint64 value;
+            int value;
             size_t size = sizeof(value);
             getOption(OPT_RCVMORE, &value, &size);
             return value;
