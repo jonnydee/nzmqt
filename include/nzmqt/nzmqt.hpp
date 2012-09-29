@@ -343,7 +343,7 @@ namespace nzmqt
 
         inline int fileDescriptor() const
         {
-            int value;
+            qint32 value;
             size_t size = sizeof(value);
             getOption(OPT_FD, &value, &size);
             return value;
@@ -397,7 +397,7 @@ namespace nzmqt
 
         inline int linger() const
         {
-            int msec=-1;
+            qint32 msec=-1;
             size_t size = sizeof(msec);
             getOption(OPT_LINGER, &msec, &size);
             return msec;
