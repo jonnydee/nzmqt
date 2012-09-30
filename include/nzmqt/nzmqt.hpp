@@ -163,13 +163,13 @@ namespace nzmqt
         enum SendFlag
         {
             SND_MORE = ZMQ_SNDMORE,
-            SND_NOBLOCK = ZMQ_NOBLOCK,
+            SND_NOBLOCK = ZMQ_DONTWAIT,
         };
         Q_DECLARE_FLAGS(SendFlags, SendFlag)
 
         enum ReceiveFlag
         {
-            RCV_NOBLOCK = ZMQ_NOBLOCK,
+            RCV_NOBLOCK = ZMQ_DONTWAIT,
         };
         Q_DECLARE_FLAGS(ReceiveFlags, ReceiveFlag)
 
@@ -186,14 +186,10 @@ namespace nzmqt
             OPT_UNSUBSCRIBE = ZMQ_UNSUBSCRIBE,
 
             // Get and set.
-            OPT_HWM = ZMQ_HWM,
-            OPT_SWAP = ZMQ_SWAP,
             OPT_AFFINITY = ZMQ_AFFINITY,
             OPT_IDENTITY = ZMQ_IDENTITY,
             OPT_RATE = ZMQ_RATE,
             OPT_RECOVERY_IVL = ZMQ_RECOVERY_IVL,
-            OPT_RECOVERY_IVL_MSEC = ZMQ_RECOVERY_IVL_MSEC,
-            OPT_MCAST_LOOP = ZMQ_MCAST_LOOP,
             OPT_SNDBUF = ZMQ_SNDBUF,
             OPT_RCVBUF = ZMQ_RCVBUF,
             OPT_LINGER = ZMQ_LINGER,
@@ -341,7 +337,7 @@ namespace nzmqt
             return ret;
         }
 
-        inline int fileDescriptor() const
+        inline qint32 fileDescriptor() const
         {
             qint32 value;
             size_t size = sizeof(value);
@@ -351,7 +347,7 @@ namespace nzmqt
 
         inline Events events() const
         {
-            quint32 value;
+            qint32 value;
             size_t size = sizeof(value);
             getOption(OPT_EVENTS, &value, &size);
             return static_cast<Events>(value);
@@ -361,7 +357,7 @@ namespace nzmqt
         // to be received.
         inline bool hasMoreMessageParts() const
         {
-            qint64 value;
+            qint32 value;
             size_t size = sizeof(value);
             getOption(OPT_RCVMORE, &value, &size);
             return value;
@@ -395,7 +391,7 @@ namespace nzmqt
             setOption(OPT_LINGER, msec_);
         }
 
-        inline int linger() const
+        inline qint32 linger() const
         {
             qint32 msec=-1;
             size_t size = sizeof(msec);
@@ -513,34 +509,34 @@ namespace nzmqt
     }
 
 
-    class ZMQDevice : public QObject, public QRunnable
-    {
-        Q_OBJECT
-        Q_ENUMS(Type)
-
-    public:
-        enum Type
-        {
-            TYP_QUEUE = ZMQ_QUEUE,
-            TYP_FORWARDED = ZMQ_FORWARDER,
-            TYP_STREAMER = ZMQ_STREAMER,
-        };
-
-        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
-            : type_(type), frontend_(frontend), backend_(backend)
-        {
-        }
-
-        inline void run()
-        {
-            zmq::device(type_, *frontend_, *backend_);
-        }
-
-    private:
-        Type type_;
-        ZMQSocket* frontend_;
-        ZMQSocket* backend_;
-    };
+//    class ZMQDevice : public QObject, public QRunnable
+//    {
+//        Q_OBJECT
+//        Q_ENUMS(Type)
+//
+//    public:
+//        enum Type
+//        {
+//            TYP_QUEUE = ZMQ_QUEUE,
+//            TYP_FORWARDED = ZMQ_FORWARDER,
+//            TYP_STREAMER = ZMQ_STREAMER,
+//        };
+//
+//        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
+//            : type_(type), frontend_(frontend), backend_(backend)
+//        {
+//        }
+//
+//        inline void run()
+//        {
+//            zmq::device(type_, *frontend_, *backend_);
+//        }
+//
+//    private:
+//        Type type_;
+//        ZMQSocket* frontend_;
+//        ZMQSocket* backend_;
+//    };
 
 
     // An instance of this class cannot directly be created. Use one
