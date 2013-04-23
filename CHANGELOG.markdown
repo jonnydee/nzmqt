@@ -1,6 +1,7 @@
 Release 2.2.1-dev
 -----------------
 * Emit poll errors as signals (instead of ignoring them).
+* Fixed gh-8: Unsafe disconnect in PollingZMQContext::unregisterSocket(QObject\* socket_).
 
 Release 2.2.0
 -------------
