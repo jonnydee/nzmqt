@@ -42,3 +42,6 @@ desktop.ini
 .bzr*
 .svn*
 
+# Project directories
+externals/
+
