@@ -42,4 +42,6 @@ QMAKE_LIBDIR += \
 OTHER_FILES += \
     ../README.markdown \
     ../COPYING \
-    ../LICENSE.header
+    ../LICENSE.header \
+    ../CHANGELOG.markdown \
+    ../LICENSE.markdown
