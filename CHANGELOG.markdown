@@ -1,5 +1,5 @@
-Release 2.2.1 (TO BE RELEASED)
-------------------------------
+Release 2.2.1-dev
+-----------------
 * Emit poll errors as signals (instead of ignoring them).
 
 Release 2.2.0

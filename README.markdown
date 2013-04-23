@@ -1,5 +1,5 @@
-nzmqt v2.2.0 - A lightweight C++ [Qt][] binding for [ZeroMQ][]
-==============================================================
+nzmqt v2.2.1-dev - A lightweight C++ [Qt][] binding for [ZeroMQ][]
+==================================================================
 
 nzmqt is a re-implementation of the approach taken by the [zeromqt][] library. The idea 
 is to integrate ZeroMQ into the Qt event loop, mapping ZeroMQ message events onto 
