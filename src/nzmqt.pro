@@ -34,6 +34,7 @@ LIBS += -lzmq
 
 INCLUDEPATH += \
     ../include \
+    ../externals/include \
     /opt/local/include
 
 QMAKE_LIBDIR += \
@@ -41,5 +42,7 @@ QMAKE_LIBDIR += \
 
 OTHER_FILES += \
     ../README.markdown \
-    ../COPYING \
-    ../LICENSE.header
+    ../LICENSE.header \
+    ../CHANGELOG.markdown \
+    ../LICENSE.markdown
+

@@ -42,12 +42,21 @@ add it as a child to any QObject parent as you know it from Qt.
 
 Versioning and Compatibility
 ----------------------------
-It has been decided to reflect compatibility with ZeroMQ releases using a corresponding versioning scheme. The last release not ing the new scheme is version-0.7, which is compatible with ZeroMQ release 2.2. From now on all nzmqt releases compatible with ZeroMQ release 2.x will have version numbers starting with 2.x, too. Correspondingly, all nzmqt releases compatible with ZeroMQ 3.x will have version numbers starting with 3.x.
+
+It has been decided to reflect compatibility with ZeroMQ releases using a corresponding versioning scheme. The last release not using the new scheme is version-0.7, which is compatible with ZeroMQ release 2.2. From now on all nzmqt releases compatible with ZeroMQ release 2.x will have version numbers starting with 2.x, too. Correspondingly, all nzmqt releases compatible with ZeroMQ 3.x will have version numbers starting with 3.x.
 
 Status
 ------
 
 See the [official bug tracker](https://github.com/jonnydee/nzmqt/issues "https://github.com/jonnydee/nzmqt/issues").
+
+Dependencies
+------------
+
+There are only three dependencies:
+* [Qt 4.8.x](http://download.qt-project.org/official_releases/qt/4.8/)
+* [ZeroMQ 3.2.x](http://www.zeromq.org/intro:get-the-software)
+* [C++ binding for 0MQ](https://github.com/zeromq/cppzmq)
 
 Usage
 -----

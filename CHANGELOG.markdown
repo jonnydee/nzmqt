@@ -1,3 +1,11 @@
+Release 2.2.1 (TO BE RELEASED)
+------------------------------
+* Emit poll errors as signals (instead of ignoring them).
+
+Release 2.2.0
+-------------
+* fixed gh-5: Change PollingZMQContext::poll to empty the socket queue rather than poll once per interval.
+
 Release 0.7
 -----------
 * Introduced enumeration types for several ZMQ constants for type-safety.

@@ -1,4 +1,4 @@
-// Copyright 2011-2012 Johann Duscher. All rights reserved.
+// Copyright 2011-2013 Johann Duscher (a.k.a. Jonny Dee). All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
@@ -341,7 +341,7 @@ namespace nzmqt
             return ret;
         }
 
-        inline int fileDescriptor() const
+        inline qint32 fileDescriptor() const
         {
             qint32 value;
             size_t size = sizeof(value);
@@ -395,7 +395,7 @@ namespace nzmqt
             setOption(OPT_LINGER, msec_);
         }
 
-        inline int linger() const
+        inline qint32 linger() const
         {
             qint32 msec=-1;
             size_t size = sizeof(msec);
@@ -635,10 +635,14 @@ namespace nzmqt
             if (m_stopped)
                 return;
 
-            try {
+            try
+            {
                 poll();
-            } catch (ZMQException e) {
-		qWarning("Exception during poll: %s\n", e.what());
+            }
+            catch (const ZMQException& ex)
+            {
+                qWarning("Exception during poll: %s", ex.what());
+                emit pollError(ex.num(), ex.what());
             }
 
             if (!m_stopped)
@@ -660,7 +664,8 @@ namespace nzmqt
                     return;
 
                 cnt = zmq::poll(&m_pollItems[0], m_pollItems.size(), timeout_);
-                if (cnt <= 0)
+                Q_ASSERT_X(cnt >= 0, Q_FUNC_INFO, "A value < 0 should be reflected by an exception.");
+                if (0 == cnt)
                     return;
 
                 PollItems::iterator poIt = m_pollItems.begin();
@@ -679,6 +684,11 @@ namespace nzmqt
                 }
             } while (cnt > 0);
         }
+
+    signals:
+        // This signal will be emitted by run() method if a call to poll(...) method
+        // results in an exception.
+        void pollError(int errorNum, const QString& errorMsg);
 
     protected:
         inline PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_)
