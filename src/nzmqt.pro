@@ -41,7 +41,7 @@ QMAKE_LIBDIR += \
     /opt/local/lib
 
 OTHER_FILES += \
-    ../README.markdown \
+    ../README.md \
     ../LICENSE.header \
-    ../CHANGELOG.markdown \
-    ../LICENSE.markdown
+    ../CHANGELOG.md \
+    ../LICENSE.md
