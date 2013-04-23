@@ -631,10 +631,13 @@ namespace nzmqt
             if (m_stopped)
                 return;
 
-            try {
+            try
+            {
                 poll();
-            } catch (ZMQException e) {
-		qWarning("Exception during poll: %s\n", e.what());
+            }
+            catch (const ZMQException& ex)
+            {
+                qWarning("Exception during poll: %s", ex.what());
             }
 
             if (!m_stopped)
