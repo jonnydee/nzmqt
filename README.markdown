@@ -53,7 +53,7 @@ See the [official bug tracker](https://github.com/jonnydee/nzmqt/issues "https:/
 Dependencies
 ------------
 
-There are only three dependencies:
+There are only two dependencies:
 * [Qt 4.8.x](http://download.qt-project.org/official_releases/qt/4.8/)
 * [ZeroMQ 2.2.x](http://www.zeromq.org/intro:get-the-software)
 
