@@ -1,0 +1,44 @@
+# In repository we don't need to have:
+# Compiled object files and libs
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Qt files
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.pro.user
+*.pro.user.*
+*-build-*
+Makefile
+
+# Debug and Release directories (created under Windows, not Linux)
+Debug/
+Release/
+
+# .log files (usually created by QtTest - thanks to VestniK)
+*.log
+
+# Windows-specific files
+Thumbs.db
+desktop.ini
+
+# Mac-specific things
+*.DS_Store
+
+# Editors temporary files 
+*~
+
+# Foreign VCS files.
+.hg*
+.bzr*
+.svn*
+
