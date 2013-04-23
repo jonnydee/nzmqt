@@ -638,6 +638,7 @@ namespace nzmqt
             catch (const ZMQException& ex)
             {
                 qWarning("Exception during poll: %s", ex.what());
+                emit pollError(ex.num(), ex.what());
             }
 
             if (!m_stopped)
@@ -659,7 +660,8 @@ namespace nzmqt
                     return;
 
                 cnt = zmq::poll(&m_pollItems[0], m_pollItems.size(), timeout_);
-                if (cnt <= 0)
+                Q_ASSERT_X(cnt >= 0, Q_FUNC_INFO, "A value < 0 should be reflected by an exception.");
+                if (0 == cnt)
                     return;
 
                 PollItems::iterator poIt = m_pollItems.begin();
@@ -678,6 +680,11 @@ namespace nzmqt
                 }
             } while (cnt > 0);
         }
+
+    signals:
+        // This signal will be emitted by run() method if a call to poll(...) method
+        // results in an exception.
+        void pollError(int errorNum, const QString& errorMsg);
 
     protected:
         inline PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_)
