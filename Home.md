@@ -3,8 +3,8 @@ nzmqt - A lightweight C++ Qt binding for 0MQ
 
 [nzmqt][] is a lightweight C++ [Qt][] binding for [0MQ / zeromq][zeromq]. The primary goal of this project is to provide a Qt-ish interface to 0MQ intelligent transport layer library and to integrate it into Qt's event loop seemlessly.
 
-Why use nzmqt?
---------------
+Why use nzmqt
+-------------
 
 If you use Qt framework for platform independent software development and you want to use 0MQ transport layer library you are facing the problem to integrate message queue into Qt's event system somehow. There is already a C++ Qt binding [zeromqt][] which approaches this problem by integrating 0MQ into the Qt's event loop, mapping 0MQ message events onto Qt signals. Furthermore, it provides a Qt-like API which allows to represent messages as QByteArray instances. This is a nice idea! However, there are some drawbacks with the project's code and implementation, which is why I decided to start this project.
 
@@ -20,16 +20,13 @@ nzmqt is a re-implementation of the approach taken by [zeromqt][]. I took the or
 * The code is officially licensed under the (commercial-friendly) simplified BSD license.
 * Not only PUB-SUB, but also REQ-REP and PUSH-PULL are supported.
 
-Project Status
---------------
-
-See the official [nzmqt issue tracker].
-
 More Information
 ----------------
 
-* [Software Overview][]: How to get started, API reference documentation, etc.
-* [Samples Overview][]: Explanation of the provided examples.
+* [changelog][]: What's new? Read about changes introduced with each release.
+* [nzmqt issue tracker][]: Find out about the current project status, or issue bug reports and feature requests.
+* [software overview][]: How to get started, API reference documentation, etc.
+* [samples overview][]: Explanation of the provided examples.
 
 
  [cppzmq]:              https://github.com/zeromq/cppzmq                            "C++ binding for 0MQ on GitHub"
@@ -39,5 +36,6 @@ More Information
  [zeromq]:              http://www.zeromq.org/                                      "0MQ project homepage"
  [zeromqt]:             https://github.com/wttw/zeromqt                             "zeromqt project on GitHub"
 
- [Samples Overview]:    wiki/Samples                                                "nzmqt software overview"
- [Software Overview]:   wiki/Software                                               "nzmqt samples overview"
+ [changelog]:           wiki/Software-Changelog                                     "nzmqt software changelog"
+ [samples overview]:    wiki/Samples                                                "nzmqt samples overview"
+ [software overview]:   wiki/Software                                               "nzmqt software overview"
