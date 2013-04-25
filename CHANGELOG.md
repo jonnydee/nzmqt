@@ -1,5 +1,6 @@
 Release 3.2.0-dev
 -----------------
+* Improved documentation.
 * Emit poll errors as signals (instead of ignoring them).
 * Fixed gh-6; Exception thrown during poll.
 * Fixed gh-7: Fix occasional incorrect result from hasMoreMessageParts.
