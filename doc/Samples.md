@@ -8,6 +8,6 @@ There are some samples showing PUB-SUB, REQ-REP and PUSH-PULL protocol with mult
 * [reqrep][]: Demonstrates how to implement REQ-REP protocol.
 
 
- [pubsub]:      doc/Samples-pubsub.md       "PUB-SUB protocol example"
- [pushpull]:    doc/Samples-pushpull.md     "PUSH-PULL protocol example"
- [reqrep]:      doc/Samples-reqrep.md       "REQ-REP protocol example"
+ [pubsub]:      Samples-pubsub.md       "PUB-SUB protocol example"
+ [pushpull]:    Samples-pushpull.md     "PUSH-PULL protocol example"
+ [reqrep]:      Samples-reqrep.md       "REQ-REP protocol example"
