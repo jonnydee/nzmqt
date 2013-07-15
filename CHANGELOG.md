@@ -1,5 +1,6 @@
 Release 2.2.1-dev
 -----------------
+* Fixed gh-12: warnings with -Wall (and compilation broken if -Werror).
 * Improved documentation.
 * Emit poll errors as signals (instead of ignoring them).
 * Fixed gh-8: Unsafe disconnect in PollingZMQContext::unregisterSocket(QObject\* socket_).
