@@ -149,27 +149,27 @@ namespace nzmqt
             TYP_ROUTER = ZMQ_ROUTER,
             TYP_PAIR = ZMQ_PAIR,
             TYP_XPUB = ZMQ_XPUB,
-            TYP_XSUB = ZMQ_XSUB,
+            TYP_XSUB = ZMQ_XSUB
         };
 
         enum Event
         {
             EVT_POLLIN = ZMQ_POLLIN,
             EVT_POLLOUT = ZMQ_POLLOUT,
-            EVT_POLLERR = ZMQ_POLLERR,
+            EVT_POLLERR = ZMQ_POLLERR
         };
         Q_DECLARE_FLAGS(Events, Event)
 
         enum SendFlag
         {
             SND_MORE = ZMQ_SNDMORE,
-            SND_NOBLOCK = ZMQ_DONTWAIT,
+            SND_NOBLOCK = ZMQ_DONTWAIT
         };
         Q_DECLARE_FLAGS(SendFlags, SendFlag)
 
         enum ReceiveFlag
         {
-            RCV_NOBLOCK = ZMQ_DONTWAIT,
+            RCV_NOBLOCK = ZMQ_DONTWAIT
         };
         Q_DECLARE_FLAGS(ReceiveFlags, ReceiveFlag)
 
@@ -195,7 +195,7 @@ namespace nzmqt
             OPT_LINGER = ZMQ_LINGER,
             OPT_RECONNECT_IVL = ZMQ_RECONNECT_IVL,
             OPT_RECONNECT_IVL_MAX = ZMQ_RECONNECT_IVL_MAX,
-            OPT_BACKLOG = ZMQ_BACKLOG,
+            OPT_BACKLOG = ZMQ_BACKLOG
         };
 
         ~ZMQSocket();
@@ -559,7 +559,7 @@ namespace nzmqt
 //        {
 //            TYP_QUEUE = ZMQ_QUEUE,
 //            TYP_FORWARDED = ZMQ_FORWARDER,
-//            TYP_STREAMER = ZMQ_STREAMER,
+//            TYP_STREAMER = ZMQ_STREAMER
 //        };
 //
 //        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
