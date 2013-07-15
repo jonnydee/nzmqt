@@ -1,5 +1,6 @@
 Release 3.2.0-dev
 -----------------
+* Fixed gh-12: warnings with -Wall (and compilation broken if -Werror).
 * Improved documentation.
 * Emit poll errors as signals (instead of ignoring them).
 * Fixed gh-6; Exception thrown during poll.
