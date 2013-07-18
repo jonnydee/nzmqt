@@ -1,0 +1,42 @@
+diff --git a/zmq.hpp b/zmq.hpp
+index d1fc8cd..cf09fbf 100644
+--- a/zmq.hpp
++++ b/zmq.hpp
+@@ -70,6 +70,8 @@
+ 
+ namespace zmq
+ {
++    // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++    namespace { template <typename T> inline void unused(T& x) { (void)x; } }
+ 
+     typedef zmq_free_fn free_fn;
+     typedef zmq_pollitem_t pollitem_t;
+@@ -547,17 +549,17 @@ namespace zmq
+         }
+ #endif
+         virtual void on_monitor_started() {}
+-        virtual void on_event_connected(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_connect_delayed(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_connect_retried(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_listening(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_bind_failed(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_accepted(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_accept_failed(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_closed(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_close_failed(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_disconnected(const zmq_event_t &event_, const char* addr_) {}
+-        virtual void on_event_unknown(const zmq_event_t &event_, const char* addr_) {}
++        virtual void on_event_connected(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_connect_delayed(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_connect_retried(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_listening(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_bind_failed(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_accepted(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_accept_failed(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_closed(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_close_failed(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_disconnected(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
++        virtual void on_event_unknown(const zmq_event_t &event_, const char* addr_) { unused(event_); unused(addr_); } // [nzmqt] Added/patched by 'nzmqt' project in order to avoid warnings.
+     private:
+         void* socketPtr;
+     };
