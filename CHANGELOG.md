@@ -6,6 +6,7 @@ Release 3.2.0-dev
 * Fixed gh-7: Fix occasional incorrect result from hasMoreMessageParts.
 * Fixed gh-8: Unsafe disconnect in PollingZMQContext::unregisterSocket(QObject\* socket_).
 * Fixed gh-12: warnings with -Wall (and compilation broken if -Werror).
+* Feature gh-13: Support type-safe Qt 5 singals & slots connections.
 
 Release 2.2.0
 -------------
