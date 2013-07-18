@@ -35,6 +35,7 @@ LIBS += -lzmq
 INCLUDEPATH += \
     ../include \
     ../externals/include \
+    $(QTDIR)/include \
     /opt/local/include
 
 QMAKE_LIBDIR += \
