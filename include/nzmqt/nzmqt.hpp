@@ -104,6 +104,8 @@ namespace nzmqt
             super::copy(msg_);
         }
 
+        using super::more;
+
         inline void clone(ZMQMessage* msg_)
         {
             rebuild(msg_->size());
