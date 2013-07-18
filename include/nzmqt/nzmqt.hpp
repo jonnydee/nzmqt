@@ -435,6 +435,9 @@ namespace nzmqt
             setOption(OPT_UNSUBSCRIBE, filter_);
         }
 
+    signals:
+        void messageReceived(const QList<QByteArray>&);
+
     protected:
         ZMQSocket(ZMQContext* context_, Type type_);
 
@@ -604,9 +607,6 @@ namespace nzmqt
         {
             emit messageReceived(message);
         }
-
-    signals:
-        void messageReceived(const QList<QByteArray>&);
     };
 
     class PollingZMQContext : public ZMQContext, public QRunnable
@@ -837,9 +837,6 @@ namespace nzmqt
 //                socketNotifyWrite_->setEnabled(false);
 //            }
 //        }
-
-    signals:
-        void messageReceived(const QList<QByteArray>&);
 
     private:
         QSocketNotifier *socketNotifyRead_;
