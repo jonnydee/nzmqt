@@ -41,13 +41,10 @@ DEFINES += \
 #    NZMQT_LIB
 
 SOURCES += \
-    nzmqt/nzmqt.cpp \
     main.cpp
 
 HEADERS += \
-    ../include/nzmqt/global.hpp \
     ../include/nzmqt/nzmqt.hpp \
-    ../include/nzmqt/impl.hpp \
     pubsub/PubSubServer.h \
     pubsub/PubSubClient.h \
     reqrep/ReqRepServer.h \
