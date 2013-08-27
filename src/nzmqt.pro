@@ -30,6 +30,7 @@ QT       += core
 QT       -= gui
 
 TARGET = nzmqt
+VERSION = 3.2.0
 CONFIG   += console
 CONFIG   -= app_bundle
 

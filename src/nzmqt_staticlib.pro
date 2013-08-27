@@ -28,6 +28,7 @@
 QT       -= gui
 
 TARGET = nzmqt
+VERSION = 3.2.0
 TEMPLATE = lib
 CONFIG += staticlib
 
