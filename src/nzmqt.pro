@@ -35,12 +35,16 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+DEFINES += \
+#    NZMQT_LIB
 
 SOURCES += \
+    ../include/nzmqt/nzmqt.cpp \
     main.cpp
 
 HEADERS += \
     ../include/nzmqt/nzmqt.hpp \
+    ../include/nzmqt/impl.hpp \
     pubsub/PubSubServer.h \
     pubsub/PubSubClient.h \
     reqrep/ReqRepServer.h \
