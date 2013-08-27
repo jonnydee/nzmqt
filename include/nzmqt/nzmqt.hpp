@@ -31,18 +31,13 @@
 
 #include <zmq.hpp>
 
-#include <QDebug>
-#include <QObject>
-#include <QList>
-#include <QPair>
 #include <QByteArray>
-#include <QSocketNotifier>
-#include <QMetaType>
-#include <QMutex>
-#include <QMutexLocker>
-#include <QTimer>
-#include <QRunnable>
 #include <QFlag>
+#include <QList>
+#include <QMutex>
+#include <QObject>
+#include <QRunnable>
+#include <QVector>
 
 // Define default context implementation to be used.
 #ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
@@ -63,6 +58,8 @@
 // Declare metatypes for using them in Qt signals.
 Q_DECLARE_METATYPE(QList< QList<QByteArray> >)
 Q_DECLARE_METATYPE(QList<QByteArray>)
+
+class QSocketNotifier;
 
 namespace nzmqt
 {

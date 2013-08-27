@@ -29,6 +29,11 @@
 
 #include "nzmqt/nzmqt.hpp"
 
+#include <QDebug>
+#include <QMutexLocker>
+#include <QSocketNotifier>
+#include <QTimer>
+
 #if defined(NZMQT_LIB)
 // #pragma message("nzmqt is built as library")
  #define NZMQT_INLINE
