@@ -29,7 +29,13 @@ QT       -= gui
 
 TARGET = nzmqt
 VERSION = 3.2.0
+DESTDIR = $$_PRO_FILE_PWD_/../bin
 TEMPLATE = lib
+
+CONFIG   += debug_and_release
+CONFIG(debug, debug|release) {
+     TARGET = $$join(TARGET,,,d)
+}
 
 DEFINES += \
     NZMQT_LIB \
