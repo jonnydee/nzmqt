@@ -25,36 +25,22 @@
 # or implied, of Johann Duscher.
 
 
-QT       += core
-
 QT       -= gui
 
 TARGET = nzmqt
-CONFIG   += console
-CONFIG   -= app_bundle
-
-TEMPLATE = app
+TEMPLATE = lib
 
 DEFINES += \
-#    NZMQT_LIB
+    NZMQT_LIB \
+    NZMQT_SHAREDLIB
 
 SOURCES += \
-    ../include/nzmqt/nzmqt.cpp \
-    main.cpp
+    ../include/nzmqt/nzmqt.cpp
 
 HEADERS += \
     ../include/nzmqt/global.hpp \
     ../include/nzmqt/nzmqt.hpp \
-    ../include/nzmqt/impl.hpp \
-    pubsub/PubSubServer.h \
-    pubsub/PubSubClient.h \
-    reqrep/ReqRepServer.h \
-    reqrep/ReqRepClient.h \
-    pushpull/PushPullWorker.h \
-    pushpull/PushPullVentilator.h \
-    pushpull/PushPullSink.h \
-    NzmqtApp.h \
-    common/Tools.h
+    ../include/nzmqt/impl.hpp
 
 LIBS += -lzmq
 

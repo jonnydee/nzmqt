@@ -27,6 +27,8 @@
 #ifndef NZMQT_H
 #define NZMQT_H
 
+#include "nzmqt/global.hpp"
+
 #include <zmq.hpp>
 
 #include <QDebug>
@@ -73,7 +75,7 @@ namespace nzmqt
     using zmq::version;
 
     // This class wraps ZMQ's message structure.
-    class ZMQMessage : private zmq::message_t
+    class NZMQT_API ZMQMessage : private zmq::message_t
     {
         friend class ZMQSocket;
 
@@ -110,7 +112,7 @@ namespace nzmqt
     // This class cannot be instantiated. Its purpose is to serve as an
     // intermediate base class that provides Qt-based convenience methods
     // to subclasses.
-    class ZMQSocket : public QObject, private zmq::socket_t
+    class NZMQT_API ZMQSocket : public QObject, private zmq::socket_t
     {
         Q_OBJECT
         Q_ENUMS(Type Event SendFlag ReceiveFlag Option)
@@ -285,7 +287,7 @@ namespace nzmqt
 
 
     // This class is an abstract base class for concrete implementations.
-    class ZMQContext : public QObject, private zmq::context_t
+    class NZMQT_API ZMQContext : public QObject, private zmq::context_t
     {
         Q_OBJECT
 
@@ -382,7 +384,7 @@ namespace nzmqt
 
     // An instance of this class cannot directly be created. Use one
     // of the 'PollingZMQContext::createSocket()' factory methods instead.
-    class PollingZMQSocket : public ZMQSocket
+    class NZMQT_API PollingZMQSocket : public ZMQSocket
     {
         Q_OBJECT
 
@@ -398,7 +400,7 @@ namespace nzmqt
         void onMessageReceived(const QList<QByteArray>& message);
     };
 
-    class PollingZMQContext : public ZMQContext, public QRunnable
+    class NZMQT_API PollingZMQContext : public ZMQContext, public QRunnable
     {
         Q_OBJECT
 
@@ -463,7 +465,7 @@ namespace nzmqt
 
     // An instance of this class cannot directly be created. Use one
     // of the 'SocketNotifierZMQContext::createSocket()' factory methods instead.
-    class SocketNotifierZMQSocket : public ZMQSocket
+    class NZMQT_API SocketNotifierZMQSocket : public ZMQSocket
     {
         Q_OBJECT
 
@@ -489,7 +491,7 @@ namespace nzmqt
 //        QSocketNotifier *socketNotifyWrite_;
     };
 
-    class SocketNotifierZMQContext : public ZMQContext
+    class NZMQT_API SocketNotifierZMQContext : public ZMQContext
     {
         Q_OBJECT
 
@@ -508,7 +510,7 @@ namespace nzmqt
         SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_);
     };
 
-    inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
+    NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
     {
         return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(parent_, io_threads_);
     }
