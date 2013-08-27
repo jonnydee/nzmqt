@@ -39,7 +39,7 @@ DEFINES += \
 #    NZMQT_LIB
 
 SOURCES += \
-    ../include/nzmqt/nzmqt.cpp \
+    nzmqt/nzmqt.cpp \
     main.cpp
 
 HEADERS += \

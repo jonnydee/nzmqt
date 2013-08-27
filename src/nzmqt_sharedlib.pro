@@ -35,7 +35,7 @@ DEFINES += \
     NZMQT_SHAREDLIB
 
 SOURCES += \
-    ../include/nzmqt/nzmqt.cpp
+    nzmqt/nzmqt.cpp
 
 HEADERS += \
     ../include/nzmqt/global.hpp \
