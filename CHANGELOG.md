@@ -7,6 +7,7 @@ Release 3.2.0-dev
 * Fixed gh-8: Unsafe disconnect in PollingZMQContext::unregisterSocket(QObject\* socket_).
 * Fixed gh-12: warnings with -Wall (and compilation broken if -Werror).
 * Feature gh-13: Support type-safe Qt 5 singals & slots connections.
+* Feature gh-14: Additionally allow to link nzmqt 3.2.0 as static or shared lib.
 
 Release 2.2.0
 -------------
