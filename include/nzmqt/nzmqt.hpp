@@ -346,36 +346,30 @@ namespace nzmqt
         Sockets m_sockets;
     };
 
+/*
+    class ZMQDevice : public QObject, public QRunnable
+    {
+        Q_OBJECT
+        Q_ENUMS(Type)
 
-//    class ZMQDevice : public QObject, public QRunnable
-//    {
-//        Q_OBJECT
-//        Q_ENUMS(Type)
-//
-//    public:
-//        enum Type
-//        {
-//            TYP_QUEUE = ZMQ_QUEUE,
-//            TYP_FORWARDED = ZMQ_FORWARDER,
-//            TYP_STREAMER = ZMQ_STREAMER
-//        };
-//
-//        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
-//            : type_(type), frontend_(frontend), backend_(backend)
-//        {
-//        }
-//
-//        inline void run()
-//        {
-//            zmq::device(type_, *frontend_, *backend_);
-//        }
-//
-//    private:
-//        Type type_;
-//        ZMQSocket* frontend_;
-//        ZMQSocket* backend_;
-//    };
+    public:
+        enum Type
+        {
+            TYP_QUEUE = ZMQ_QUEUE,
+            TYP_FORWARDED = ZMQ_FORWARDER,
+            TYP_STREAMER = ZMQ_STREAMER
+        };
 
+        ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend);
+
+        void run();
+
+    private:
+        Type type_;
+        ZMQSocket* frontend_;
+        ZMQSocket* backend_;
+    };
+*/
 
     class PollingZMQContext;
 

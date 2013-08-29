@@ -382,6 +382,24 @@ NZMQT_INLINE const ZMQContext::Sockets& ZMQContext::registeredSockets() const
 
 
 /*
+ * ZMQDevice
+ */
+/*
+NZMQT_INLINE ZMQDevice::ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
+    : type_(type)
+    , frontend_(frontend)
+    , backend_(backend)
+{
+}
+
+NZMQT_INLINE void ZMQDevice::run()
+{
+    zmq::device(type_, *frontend_, *backend_);
+}
+*/
+
+
+/*
  * PollingZMQSocket
  */
 
