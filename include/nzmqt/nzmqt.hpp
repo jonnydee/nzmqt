@@ -27,20 +27,17 @@
 #ifndef NZMQT_H
 #define NZMQT_H
 
+#include "nzmqt/global.hpp"
+
 #include <zmq.hpp>
 
-#include <QDebug>
-#include <QObject>
-#include <QList>
-#include <QPair>
 #include <QByteArray>
-#include <QSocketNotifier>
-#include <QMetaType>
-#include <QMutex>
-#include <QMutexLocker>
-#include <QTimer>
-#include <QRunnable>
 #include <QFlag>
+#include <QList>
+#include <QMutex>
+#include <QObject>
+#include <QRunnable>
+#include <QVector>
 
 // Define default context implementation to be used.
 #ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
@@ -62,6 +59,8 @@
 Q_DECLARE_METATYPE(QList< QList<QByteArray> >)
 Q_DECLARE_METATYPE(QList<QByteArray>)
 
+class QSocketNotifier;
+
 namespace nzmqt
 {
     typedef zmq::free_fn free_fn;
@@ -73,51 +72,34 @@ namespace nzmqt
     using zmq::version;
 
     // This class wraps ZMQ's message structure.
-    class ZMQMessage : private zmq::message_t
+    class NZMQT_API ZMQMessage : private zmq::message_t
     {
         friend class ZMQSocket;
 
         typedef zmq::message_t super;
 
     public:
-        inline ZMQMessage() : super() {}
+        ZMQMessage();
 
-        inline ZMQMessage(size_t size_) : super(size_) {}
+        ZMQMessage(size_t size_);
 
-        inline ZMQMessage(void* data_, size_t size_, free_fn *ffn_, void* hint_ = 0)
-            : super(data_, size_, ffn_, hint_) {}
+        ZMQMessage(void* data_, size_t size_, free_fn *ffn_, void* hint_ = 0);
 
-        inline ZMQMessage(const QByteArray& b) : super(b.size())
-        {
-            memcpy(data(), b.constData(), b.size());
-        }
+        ZMQMessage(const QByteArray& b);
 
         using super::rebuild;
 
-        inline void move(ZMQMessage* msg_)
-        {
-            super::move(static_cast<zmq::message_t*>(msg_));
-        }
+        void move(ZMQMessage* msg_);
 
-        inline void copy(ZMQMessage* msg_)
-        {
-            super::copy(msg_);
-        }
+        void copy(ZMQMessage* msg_);
 
-        inline void clone(ZMQMessage* msg_)
-        {
-            rebuild(msg_->size());
-            memcpy(data(), msg_->data(), size());
-        }
+        void clone(ZMQMessage* msg_);
 
         using super::data;
 
         using super::size;
 
-        inline QByteArray toByteArray()
-        {
-            return QByteArray((const char *)data(), size());
-        }
+        QByteArray toByteArray();
     };
 
     class ZMQContext;
@@ -125,7 +107,7 @@ namespace nzmqt
     // This class cannot be instantiated. Its purpose is to serve as an
     // intermediate base class that provides Qt-based convenience methods
     // to subclasses.
-    class ZMQSocket : public QObject, private zmq::socket_t
+    class NZMQT_API ZMQSocket : public QObject, private zmq::socket_t
     {
         Q_OBJECT
         Q_ENUMS(Type Event SendFlag ReceiveFlag Option)
@@ -208,232 +190,86 @@ namespace nzmqt
 
         using zmqsuper::close;
 
-        inline void setOption(Option optName_, const void *optionVal_, size_t optionValLen_)
-        {
-            setsockopt(optName_, optionVal_, optionValLen_);
-        }
+        void setOption(Option optName_, const void *optionVal_, size_t optionValLen_);
 
-        inline void setOption(Option optName_, const char* str_)
-        {
-            setOption(optName_, str_, strlen(str_));
-        }
+        void setOption(Option optName_, const char* str_);
 
-        inline void setOption(Option optName_, const QByteArray& bytes_)
-        {
-            setOption(optName_, bytes_.constData(), bytes_.size());
-        }
+        void setOption(Option optName_, const QByteArray& bytes_);
 
-        inline void setOption(Option optName_, qint32 value_)
-        {
-            setOption(optName_, &value_, sizeof(value_));
-        }
+        void setOption(Option optName_, qint32 value_);
 
-        inline void setOption(Option optName_, quint32 value_)
-        {
-            setOption(optName_, &value_, sizeof(value_));
-        }
+        void setOption(Option optName_, quint32 value_);
 
-        inline void setOption(Option optName_, qint64 value_)
-        {
-            setOption(optName_, &value_, sizeof(value_));
-        }
+        void setOption(Option optName_, qint64 value_);
 
-        inline void setOption(Option optName_, quint64 value_)
-        {
-            setOption(optName_, &value_, sizeof(value_));
-        }
+        void setOption(Option optName_, quint64 value_);
 
-        inline void getOption(Option option_, void *optval_, size_t *optvallen_) const
-        {
-            const_cast<ZMQSocket*>(this)->getsockopt(option_, optval_, optvallen_);
-        }
+        void getOption(Option option_, void *optval_, size_t *optvallen_) const;
 
-        inline void bindTo(const QString& addr_)
-        {
-            bind(addr_.toLocal8Bit());
-        }
+        void bindTo(const QString& addr_);
 
-        inline void bindTo(const char *addr_)
-        {
-            bind(addr_);
-        }
+        void bindTo(const char *addr_);
 
-        inline void connectTo(const QString& addr_)
-        {
-            zmqsuper::connect(addr_.toLocal8Bit());
-        }
+        void connectTo(const QString& addr_);
 
-        inline void connectTo(const char* addr_)
-        {
-            zmqsuper::connect(addr_);
-        }
+        void connectTo(const char* addr_);
 
-        inline bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_NOBLOCK)
-        {
-            return send(msg_, flags_);
-        }
+        bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_NOBLOCK);
 
-        inline bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK)
-        {
-            ZMQMessage msg(bytes_);
-            return send(msg, flags_);
-        }
+        bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK);
 
         // Interprets the provided list of byte arrays as a multi-part message
         // and sends them accordingly.
         // If an empty list is provided this method doesn't do anything and returns trua.
-        inline bool sendMessage(const QList<QByteArray>& msg_, SendFlags flags_ = SND_NOBLOCK)
-        {
-            int i;
-            for (i = 0; i < msg_.size() - 1; i++)
-            {
-                if (!sendMessage(msg_[i], flags_ | SND_MORE))
-                    return false;
-            }
-            if (i < msg_.size())
-                return sendMessage(msg_[i], flags_);
-
-            return true;
-        }
+        bool sendMessage(const QList<QByteArray>& msg_, SendFlags flags_ = SND_NOBLOCK);
 
         // Receives a message or a message part.
-        inline bool receiveMessage(ZMQMessage* msg_, ReceiveFlags flags_ = RCV_NOBLOCK)
-        {
-            return recv(msg_, flags_);
-        }
+        bool receiveMessage(ZMQMessage* msg_, ReceiveFlags flags_ = RCV_NOBLOCK);
 
         // Receives a message.
         // The message is represented as a list of byte arrays representing
         // a message's parts. If the message is not a multi-part message the
         // list will only contain one array.
-        inline QList<QByteArray> receiveMessage()
-        {
-            QList<QByteArray> parts;
-
-            ZMQMessage msg;
-            while (receiveMessage(&msg))
-            {
-                parts += msg.toByteArray();
-                msg.rebuild();
-
-                if (!hasMoreMessageParts())
-                    break;
-            }
-
-            return parts;
-        }
+        QList<QByteArray> receiveMessage();
 
         // Receives all messages currently available.
         // Each message is represented as a list of byte arrays representing the messages
         // and their parts in case of multi-part messages. If a message isn't a multi-part
         // message the corresponding byte array list will only contain one element.
         // Note that this method won't work with REQ-REP protocol.
-        inline QList< QList<QByteArray> > receiveMessages()
-        {
-            QList< QList<QByteArray> > ret;
+        QList< QList<QByteArray> > receiveMessages();
 
-            QList<QByteArray> parts = receiveMessage();
-            while (!parts.isEmpty())
-            {
-                ret += parts;
+        qint32 fileDescriptor() const;
 
-                parts = receiveMessage();
-            }
-
-            return ret;
-        }
-
-        inline qint32 fileDescriptor() const
-        {
-            qint32 value;
-            size_t size = sizeof(value);
-            getOption(OPT_FD, &value, &size);
-            return value;
-        }
-
-        inline Events events() const
-        {
-            quint32 value;
-            size_t size = sizeof(value);
-            getOption(OPT_EVENTS, &value, &size);
-            return static_cast<Events>(value);
-        }
+        Events events() const;
 
         // Returns true if there are more parts of a multi-part message
         // to be received.
-        inline bool hasMoreMessageParts() const
-        {
-            qint64 value;
-            size_t size = sizeof(value);
-            getOption(OPT_RCVMORE, &value, &size);
-            return value;
-        }
+        bool hasMoreMessageParts() const;
 
-        inline void setIdentity(const char* nameStr_)
-        {
-            setOption(OPT_IDENTITY, nameStr_);
-        }
+        void setIdentity(const char* nameStr_);
 
-        inline void setIdentity(const QString& name_)
-        {
-            setOption(OPT_IDENTITY, name_.toLocal8Bit());
-        }
+        void setIdentity(const QString& name_);
 
-        inline void setIdentity(const QByteArray& name_)
-        {
-            setOption(OPT_IDENTITY, const_cast<char*>(name_.constData()), name_.size());
-        }
+        void setIdentity(const QByteArray& name_);
 
-        inline QByteArray identity() const
-        {
-            char idbuf[256];
-            size_t size = sizeof(idbuf);
-            getOption(OPT_IDENTITY, idbuf, &size);
-            return QByteArray(idbuf, size);
-        }
+        QByteArray identity() const;
 
-        inline void setLinger(int msec_)
-        {
-            setOption(OPT_LINGER, msec_);
-        }
+        void setLinger(int msec_);
 
-        inline qint32 linger() const
-        {
-            qint32 msec=-1;
-            size_t size = sizeof(msec);
-            getOption(OPT_LINGER, &msec, &size);
-            return msec;
-        }
+        qint32 linger() const;
 
-        inline void subscribeTo(const char* filterStr_)
-        {
-            setOption(OPT_SUBSCRIBE, filterStr_);
-        }
+        void subscribeTo(const char* filterStr_);
 
-        inline void subscribeTo(const QString& filter_)
-        {
-            setOption(OPT_SUBSCRIBE, filter_.toLocal8Bit());
-        }
+        void subscribeTo(const QString& filter_);
 
-        inline void subscribeTo(const QByteArray& filter_)
-        {
-            setOption(OPT_SUBSCRIBE, filter_);
-        }
+        void subscribeTo(const QByteArray& filter_);
 
-        inline void unsubscribeFrom(const char* filterStr_)
-        {
-            setOption(OPT_UNSUBSCRIBE, filterStr_);
-        }
+        void unsubscribeFrom(const char* filterStr_);
 
-        inline void unsubscribeFrom(const QString& filter_)
-        {
-            setOption(OPT_UNSUBSCRIBE, filter_.toLocal8Bit());
-        }
+        void unsubscribeFrom(const QString& filter_);
 
-        inline void unsubscribeFrom(const QByteArray& filter_)
-        {
-            setOption(OPT_UNSUBSCRIBE, filter_);
-        }
+        void unsubscribeFrom(const QByteArray& filter_);
 
     signals:
         void messageReceived(const QList<QByteArray>&);
@@ -450,7 +286,7 @@ namespace nzmqt
 
 
     // This class is an abstract base class for concrete implementations.
-    class ZMQContext : public QObject, private zmq::context_t
+    class NZMQT_API ZMQContext : public QObject, private zmq::context_t
     {
         Q_OBJECT
 
@@ -460,18 +296,12 @@ namespace nzmqt
         friend class ZMQSocket;
 
     public:
-        inline ZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
-            : qsuper(parent_), zmqsuper(io_threads_) {}
+        ZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         // Deleting children is necessary, because otherwise the children are deleted after the context
         // which results in a blocking state. So we delete the children before the zmq::context_t
         // destructor implementation is called.
-        inline ~ZMQContext()
-        {
-            QObjectList children_ = children();
-            foreach (QObject* child, children_)
-                delete child;
-        }
+        ~ZMQContext();
 
         using zmqsuper::operator void*;
 
@@ -482,10 +312,7 @@ namespace nzmqt
         // but then you need to make sure the socket instance is deleted
         // before its context. Otherwise, you might encounter blocking
         // behavior.
-        inline ZMQSocket* createSocket(ZMQSocket::Type type_)
-        {
-            return createSocket(type_, this);
-        }
+        ZMQSocket* createSocket(ZMQSocket::Type type_);
 
         // Creates a socket instance of the specified type and parent.
         // The created instance will have the specified parent.
@@ -493,12 +320,7 @@ namespace nzmqt
         // ownership later on, but then you need to make sure the socket
         // instance is deleted before its context. Otherwise, you might
         // encounter blocking behavior.
-        inline ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_)
-        {
-            ZMQSocket* socket = createSocketInternal(type_);
-            socket->setParent(parent_);
-            return socket;
-        }
+        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_);
 
         // Start watching for incoming messages.
         virtual void start() = 0;
@@ -515,48 +337,19 @@ namespace nzmqt
         // Creates a socket instance of the specified type.
         virtual ZMQSocket* createSocketInternal(ZMQSocket::Type type_) = 0;
 
-        virtual inline void registerSocket(ZMQSocket* socket_)
-        {
-            m_sockets.push_back(socket_);
-        }
+        virtual void registerSocket(ZMQSocket* socket_);
 
         // Remove the given socket object from the list of registered sockets.
-        virtual inline void unregisterSocket(ZMQSocket* socket_)
-        {
-            Sockets::iterator soIt = m_sockets.begin();
-            while (soIt != m_sockets.end())
-            {
-                if (*soIt == socket_)
-                {
-                    m_sockets.erase(soIt);
-                    break;
-                }
-                ++soIt;
-            }
-        }
+        virtual void unregisterSocket(ZMQSocket* socket_);
 
-        virtual const Sockets& registeredSockets() const
-        {
-            return m_sockets;
-        }
+        virtual const Sockets& registeredSockets() const;
 
     private:
         Sockets m_sockets;
     };
 
 
-    inline ZMQSocket::ZMQSocket(ZMQContext* context_, Type type_)
-        : qsuper(0), zmqsuper(*context_, type_), m_context(context_)
-    {
-        m_context->registerSocket(this);
-    }
-
-    inline ZMQSocket::~ZMQSocket()
-    {
-        m_context->unregisterSocket(this);
-    }
-
-    class ZMQDevice : public QObject, public QRunnable
+    class NZMQT_API ZMQDevice : public QObject, public QRunnable
     {
         Q_OBJECT
         Q_ENUMS(Type)
@@ -569,15 +362,9 @@ namespace nzmqt
             TYP_STREAMER = ZMQ_STREAMER
         };
 
-        inline ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend)
-            : type_(type), frontend_(frontend), backend_(backend)
-        {
-        }
+        ZMQDevice(Type type, ZMQSocket* frontend, ZMQSocket* backend);
 
-        inline void run()
-        {
-            zmq::device(type_, *frontend_, *backend_);
-        }
+        void run();
 
     private:
         Type type_;
@@ -590,7 +377,7 @@ namespace nzmqt
 
     // An instance of this class cannot directly be created. Use one
     // of the 'PollingZMQContext::createSocket()' factory methods instead.
-    class PollingZMQSocket : public ZMQSocket
+    class NZMQT_API PollingZMQSocket : public ZMQSocket
     {
         Q_OBJECT
 
@@ -603,120 +390,47 @@ namespace nzmqt
 
         // This method is called by the socket's context object in order
         // to signal a new received message.
-        inline void onMessageReceived(const QList<QByteArray>& message)
-        {
-            emit messageReceived(message);
-        }
+        void onMessageReceived(const QList<QByteArray>& message);
     };
 
-    class PollingZMQContext : public ZMQContext, public QRunnable
+    class NZMQT_API PollingZMQContext : public ZMQContext, public QRunnable
     {
         Q_OBJECT
 
         typedef ZMQContext super;
 
     public:
-        inline PollingZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
-            : super(parent_, io_threads_),
-              m_pollItemsMutex(QMutex::Recursive),
-              m_interval(NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL),
-              m_stopped(false)
-        {
-            setAutoDelete(false);
-        }
+        PollingZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         // Sets the polling interval.
         // Note that the interval does not denote the time the zmq::poll() function will
         // block in order to wait for incoming messages. Instead, it denotes the time in-between
         // consecutive zmq::poll() calls.
-        inline void setInterval(int interval_)
-        {
-            m_interval = interval_;
-        }
+        void setInterval(int interval_);
 
-        inline int getInterval() const
-        {
-            return m_interval;
-        }
+        int getInterval() const;
 
         // Starts the polling process by scheduling a call to the 'run()' method into Qt's event loop.
-        inline void start()
-        {
-            m_stopped = false;
-            QTimer::singleShot(0, this, SLOT(run()));
-        }
+        void start();
 
         // Stops the polling process in the sense that no further 'run()' calls will be scheduled into
         // Qt's event loop.
-        inline void stop()
-        {
-            m_stopped = true;
-        }
+        void stop();
 
-        inline bool isStopped() const
-        {
-            return m_stopped;
-        }
+        bool isStopped() const;
 
     public slots:
         // If the polling process is not stopped (by a previous call to the 'stop()' method) this
         // method will call the 'poll()' method once and re-schedule a subsequent call to this method
         // using the current polling interval.
-        inline void run()
-        {
-            if (m_stopped)
-                return;
-
-            try
-            {
-                poll();
-            }
-            catch (const ZMQException& ex)
-            {
-                qWarning("Exception during poll: %s", ex.what());
-                emit pollError(ex.num(), ex.what());
-            }
-
-            if (!m_stopped)
-                QTimer::singleShot(m_interval, this, SLOT(run()));
-        }
+        void run();
 
         // This method will poll on all currently available poll-items (known ZMQ sockets)
         // using the given timeout to wait for incoming messages. Note that this timeout has
         // nothing to do with the polling interval. Instead, the poll method will block the current
         // thread by waiting at most the specified amount of time for incoming messages.
         // This method is public because it can be called directly if you need to.
-        inline void poll(long timeout_ = 0)
-        {
-            int cnt;
-            do {
-                QMutexLocker lock(&m_pollItemsMutex);
-
-                if (m_pollItems.empty())
-                    return;
-
-                cnt = zmq::poll(&m_pollItems[0], m_pollItems.size(), timeout_);
-                Q_ASSERT_X(cnt >= 0, Q_FUNC_INFO, "A value < 0 should be reflected by an exception.");
-                if (0 == cnt)
-                    return;
-
-                PollItems::iterator poIt = m_pollItems.begin();
-                ZMQContext::Sockets::const_iterator soIt = registeredSockets().begin();
-                int i = 0;
-                while (i < cnt && poIt != m_pollItems.end())
-                {
-                    if (poIt->revents & ZMQSocket::EVT_POLLIN)
-                    {
-                        PollingZMQSocket* socket = static_cast<PollingZMQSocket*>(*soIt);
-                        QList<QByteArray> message = socket->receiveMessage();
-                        socket->onMessageReceived(message);
-                        i++;
-                    }
-                    ++soIt;
-                    ++poIt;
-                }
-            } while (cnt > 0);
-        }
+        void poll(long timeout_ = 0);
 
     signals:
         // This signal will be emitted by run() method if a call to poll(...) method
@@ -724,43 +438,13 @@ namespace nzmqt
         void pollError(int errorNum, const QString& errorMsg);
 
     protected:
-        inline PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_)
-        {
-            return new PollingZMQSocket(this, type_);
-        }
+        PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_);
 
         // Add the given socket to list list of poll-items.
-        inline void registerSocket(ZMQSocket* socket_)
-        {
-            pollitem_t pollItem = { *socket_, 0, ZMQSocket::EVT_POLLIN, 0 };
-
-            QMutexLocker lock(&m_pollItemsMutex);
-
-            m_pollItems.push_back(pollItem);
-
-            super::registerSocket(socket_);
-        }
+        void registerSocket(ZMQSocket* socket_);
 
         // Remove the given socket object from the list of poll-items.
-        inline void unregisterSocket(ZMQSocket* socket_)
-        {
-            QMutexLocker lock(&m_pollItemsMutex);
-
-            PollItems::iterator poIt = m_pollItems.begin();
-            ZMQContext::Sockets::const_iterator soIt = registeredSockets().begin();
-            while (soIt != registeredSockets().end())
-            {
-                if (*soIt == socket_)
-                {
-                    m_pollItems.erase(poIt);
-                    break;
-                }
-                ++soIt;
-                ++poIt;
-            }
-
-            super::unregisterSocket(socket_);
-        }
+        void unregisterSocket(ZMQSocket* socket_);
 
     private:
         typedef QVector<pollitem_t> PollItems;
@@ -771,15 +455,10 @@ namespace nzmqt
         volatile bool m_stopped;
     };
 
-    inline PollingZMQSocket::PollingZMQSocket(PollingZMQContext* context_, Type type_)
-        : super(context_, type_)
-    {
-    }
-
 
     // An instance of this class cannot directly be created. Use one
     // of the 'SocketNotifierZMQContext::createSocket()' factory methods instead.
-    class SocketNotifierZMQSocket : public ZMQSocket
+    class NZMQT_API SocketNotifierZMQSocket : public ZMQSocket
     {
         Q_OBJECT
 
@@ -790,96 +469,48 @@ namespace nzmqt
 //    public:
 //        using super::sendMessage;
 
-//        inline bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK)
-//        {
-//            bool result = super::sendMessage(bytes_, flags_);
-
-//            if (!result)
-//                socketNotifyWrite_->setEnabled(true);
-
-//            return result;
-//        }
+//        bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK);
 
     protected:
-        inline SocketNotifierZMQSocket(ZMQContext* context_, Type type_)
-            : super(context_, type_),
-              socketNotifyRead_(0)
-//              socketNotifyWrite_(0)
-        {
-            int fd = fileDescriptor();
-
-            socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-            QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
-
-//            socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
-//            socketNotifyWrite_->setEnabled(false);
-//            QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
-        }
+        SocketNotifierZMQSocket(ZMQContext* context_, Type type_);
 
     protected slots:
-        inline void socketReadActivity()
-        {
-            socketNotifyRead_->setEnabled(false);
+        void socketReadActivity();
 
-            while(events() & EVT_POLLIN)
-            {
-                QList<QByteArray> message = receiveMessage();
-                emit messageReceived(message);
-            }
-
-            socketNotifyRead_->setEnabled(true);
-        }
-
-//        inline void socketWriteActivity()
-//        {
-//            if(events() == 0)
-//            {
-//                socketNotifyWrite_->setEnabled(false);
-//            }
-//        }
+//        void socketWriteActivity();
 
     private:
         QSocketNotifier *socketNotifyRead_;
 //        QSocketNotifier *socketNotifyWrite_;
     };
 
-    class SocketNotifierZMQContext : public ZMQContext
+    class NZMQT_API SocketNotifierZMQContext : public ZMQContext
     {
         Q_OBJECT
 
         typedef ZMQContext super;
 
     public:
-        inline SocketNotifierZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
-            : super(parent_, io_threads_)
-        {
-        }
+        SocketNotifierZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
-        inline void start()
-        {
-        }
+        void start();
 
-        inline void stop()
-        {
-        }
+        void stop();
 
-        inline bool isStopped() const
-        {
-            return false;
-        }
+        bool isStopped() const;
 
     protected:
-        inline SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_)
-        {
-            return new SocketNotifierZMQSocket(this, type_);
-        }
+        SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_);
     };
 
-    inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
+    NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
     {
         return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(parent_, io_threads_);
     }
 }
 
+#if !defined(NZMQT_LIB)
+ #include "nzmqt/impl.hpp"
+#endif
 
 #endif // NZMQT_H

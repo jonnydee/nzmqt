@@ -25,35 +25,29 @@
 # or implied, of Johann Duscher.
 
 
-QT       += core
-
 QT       -= gui
 
 TARGET = nzmqt
 VERSION = 2.2.1
 DESTDIR = $$_PRO_FILE_PWD_/../bin
-CONFIG   += console
-CONFIG   -= app_bundle
+TEMPLATE = lib
+CONFIG += staticlib
 
-TEMPLATE = app
+CONFIG   += debug_and_release
+CONFIG(debug, debug|release) {
+     TARGET = $$join(TARGET,,,d)
+}
 
 DEFINES += \
-#    NZMQT_LIB
+    NZMQT_LIB
 
 SOURCES += \
-    main.cpp
+    nzmqt/nzmqt.cpp
 
 HEADERS += \
+    ../include/nzmqt/global.hpp \
     ../include/nzmqt/nzmqt.hpp \
-    pubsub/PubSubServer.h \
-    pubsub/PubSubClient.h \
-    reqrep/ReqRepServer.h \
-    reqrep/ReqRepClient.h \
-    pushpull/PushPullWorker.h \
-    pushpull/PushPullVentilator.h \
-    pushpull/PushPullSink.h \
-    NzmqtApp.h \
-    common/Tools.h
+    ../include/nzmqt/impl.hpp
 
 LIBS += -lzmq
 
