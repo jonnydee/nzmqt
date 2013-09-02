@@ -60,7 +60,7 @@ public:
 
     void run()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_REP);
+        socket_ = context_->createSocket(ZMQSocket::TYP_REP, this);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
 
         socket_->bindTo(address_);

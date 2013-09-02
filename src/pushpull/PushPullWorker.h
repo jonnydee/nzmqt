@@ -61,10 +61,10 @@ public:
 
     void run()
     {
-        ventilator_ = context_->createSocket(ZMQSocket::TYP_PULL);
+        ventilator_ = context_->createSocket(ZMQSocket::TYP_PULL, this);
         connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
 
-        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH);
+        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH, this);
 
         sink_->connectTo(sinkAddress_);
         ventilator_->connectTo(ventilatorAddress_);

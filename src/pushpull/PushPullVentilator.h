@@ -62,8 +62,8 @@ public:
 
     void run()
     {
-        ventilator_ = context_->createSocket(ZMQSocket::TYP_PUSH);
-        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH);
+        ventilator_ = context_->createSocket(ZMQSocket::TYP_PUSH, this);
+        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH, this);
 
         ventilator_->bindTo(ventilatorAddress_);
         sink_->connectTo(sinkAddress_);

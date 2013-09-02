@@ -60,7 +60,7 @@ public:
 
     void run()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_PUB);
+        socket_ = context_->createSocket(ZMQSocket::TYP_PUB, this);
         socket_->bindTo(address_);
 
         QTimer* timer = new QTimer(socket_);

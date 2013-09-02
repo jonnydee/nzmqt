@@ -357,11 +357,6 @@ NZMQT_INLINE ZMQContext::~ZMQContext()
     }
 }
 
-NZMQT_INLINE ZMQSocket* ZMQContext::createSocket(ZMQSocket::Type type_)
-{
-    return createSocket(type_, this);
-}
-
 NZMQT_INLINE ZMQSocket* ZMQContext::createSocket(ZMQSocket::Type type_, QObject* parent_)
 {
     ZMQSocket* socket = createSocketInternal(type_);

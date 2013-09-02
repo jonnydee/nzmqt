@@ -58,7 +58,7 @@ public:
 
     void run()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_SUB);
+        socket_ = context_->createSocket(ZMQSocket::TYP_SUB, this);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
 
         socket_->subscribeTo(topic_);

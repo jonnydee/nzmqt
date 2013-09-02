@@ -60,7 +60,7 @@ public:
 
     void run()
     {
-        sink_ = context_->createSocket(ZMQSocket::TYP_PULL);
+        sink_ = context_->createSocket(ZMQSocket::TYP_PULL, this);
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
 
         sink_->bindTo(sinkAddress_);

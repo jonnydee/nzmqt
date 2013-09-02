@@ -61,7 +61,7 @@ public:
 
     void run()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_REQ);
+        socket_ = context_->createSocket(ZMQSocket::TYP_REQ, this);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
 
         timer_ = new QTimer(socket_);
