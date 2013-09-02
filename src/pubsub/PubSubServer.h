@@ -51,17 +51,16 @@ class PubSubServer : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit PubSubServer(const QString& address, const QString& topic, QObject* parent)
-        : super(parent), address_(address), topic_(topic)
+    explicit PubSubServer(ZMQContext& context, const QString& address, const QString& topic, QObject* parent)
+        : super(parent)
+        , context_(&context)
+        , address_(address), topic_(topic)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        socket_ = context->createSocket(ZMQSocket::TYP_PUB);
     }
 
     void run()
     {
+        socket_ = context_->createSocket(ZMQSocket::TYP_PUB);
         socket_->bindTo(address_);
 
         QTimer* timer = new QTimer(socket_);
@@ -83,6 +82,7 @@ protected slots:
     }
 
 private:
+    ZMQContext* context_;
     QString address_;
     QString topic_;
 

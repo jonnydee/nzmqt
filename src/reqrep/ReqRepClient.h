@@ -52,23 +52,23 @@ class ReqRepClient : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit ReqRepClient(const QString& address, const QString& requestMsg, QObject *parent)
-        : super(parent), address_(address), requestMsg_(requestMsg)
+    explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent)
+        : super(parent)
+        , context_(&context)
+        , address_(address), requestMsg_(requestMsg)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
+    }
 
-        socket_ = context->createSocket(ZMQSocket::TYP_REQ);
+    void run()
+    {
+        socket_ = context_->createSocket(ZMQSocket::TYP_REQ);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
 
         timer_ = new QTimer(socket_);
         timer_->setSingleShot(true);
         timer_->setInterval(1000);
         connect(timer_, SIGNAL(timeout()), SLOT(sendRequest()));
-    }
 
-    void run()
-    {
         socket_->connectTo(address_);
 
         timer_->start();
@@ -95,6 +95,7 @@ protected slots:
     }
 
 private:
+    ZMQContext* context_;
     QString address_;
     QString requestMsg_;
 

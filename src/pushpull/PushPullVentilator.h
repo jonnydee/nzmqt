@@ -53,19 +53,18 @@ class PushPullVentilator : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit PushPullVentilator(const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
+    explicit PushPullVentilator(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
+        : super(parent)
+        , context_(&context)
+        , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        ventilator_ = context->createSocket(ZMQSocket::TYP_PUSH);
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
     }
 
     void run()
     {
+        ventilator_ = context_->createSocket(ZMQSocket::TYP_PUSH);
+        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH);
+
         ventilator_->bindTo(ventilatorAddress_);
         sink_->connectTo(sinkAddress_);
 
@@ -103,6 +102,7 @@ public:
     }
 
 private:
+    ZMQContext* context_;
     QString ventilatorAddress_;
     QString sinkAddress_;
     quint32 numberOfWorkItems_;

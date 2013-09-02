@@ -51,18 +51,18 @@ class PushPullSink : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit PushPullSink(const QString& sinkAddress, QObject *parent)
-        : super(parent), sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
+    explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent)
+        : super(parent)
+        , context_(&context)
+        , sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PULL);
-        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 
     void run()
     {
+        sink_ = context_->createSocket(ZMQSocket::TYP_PULL);
+        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
+
         sink_->bindTo(sinkAddress_);
     }
 
@@ -99,6 +99,7 @@ protected slots:
     }
 
 private:
+    ZMQContext* context_;
     QString sinkAddress_;
 
     ZMQSocket* sink_;

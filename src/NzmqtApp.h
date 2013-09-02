@@ -95,6 +95,9 @@ protected slots:
             QString command = args[1];
             QRunnable* commandImpl = 0;
 
+            ZMQContext* context = createDefaultContext(this);
+            context->start();
+
             if ("pubsub-server" == command)
             {
                 if (args.size() < 4)
@@ -102,7 +105,7 @@ protected slots:
 
                 QString address = args[2];
                 QString topic = args[3];
-                commandImpl = new PubSubServer(address, topic, this);
+                commandImpl = new PubSubServer(*context, address, topic, this);
             }
             else if ("pubsub-client" == command)
             {
@@ -111,7 +114,7 @@ protected slots:
 
                 QString address = args[2];
                 QString topic = args[3];
-                commandImpl = new PubSubClient(address, topic, this);
+                commandImpl = new PubSubClient(*context, address, topic, this);
             }
             else if ("reqrep-server" == command)
             {
@@ -120,7 +123,7 @@ protected slots:
 
                 QString address = args[2];
                 QString responseMsg = args[3];
-                commandImpl = new ReqRepServer(address, responseMsg, this);
+                commandImpl = new ReqRepServer(*context, address, responseMsg, this);
             }
             else if ("reqrep-client" == command)
             {
@@ -129,7 +132,7 @@ protected slots:
 
                 QString address = args[2];
                 QString requestMsg = args[3];
-                commandImpl = new ReqRepClient(address, requestMsg, this);
+                commandImpl = new ReqRepClient(*context, address, requestMsg, this);
             }
             else if ("pushpull-ventilator" == command)
             {
@@ -139,7 +142,7 @@ protected slots:
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
                 quint32 numberOfWorkItems = args[4].toUInt();
-                commandImpl = new PushPullVentilator(ventilatorAddress, sinkAddress, numberOfWorkItems, this);
+                commandImpl = new PushPullVentilator(*context, ventilatorAddress, sinkAddress, numberOfWorkItems, this);
             }
             else if ("pushpull-worker" == command)
             {
@@ -148,7 +151,7 @@ protected slots:
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                commandImpl = new PushPullWorker(ventilatorAddress, sinkAddress, this);
+                commandImpl = new PushPullWorker(*context, ventilatorAddress, sinkAddress, this);
             }
             else if ("pushpull-sink" == command)
             {
@@ -156,7 +159,7 @@ protected slots:
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString sinkAddress = args[2];
-                commandImpl = new PushPullSink(sinkAddress, this);
+                commandImpl = new PushPullSink(*context, sinkAddress, this);
             }
             else
             {

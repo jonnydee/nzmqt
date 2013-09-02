@@ -52,20 +52,20 @@ class PushPullWorker : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit PushPullWorker(const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
+    explicit PushPullWorker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
+        : super(parent)
+        , context_(&context)
+        , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        ventilator_ = context->createSocket(ZMQSocket::TYP_PULL);
-        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
     }
 
     void run()
     {
+        ventilator_ = context_->createSocket(ZMQSocket::TYP_PULL);
+        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
+
+        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH);
+
         sink_->connectTo(sinkAddress_);
         ventilator_->connectTo(ventilatorAddress_);
     }
@@ -84,6 +84,7 @@ protected slots:
     }
 
 private:
+    ZMQContext* context_;
     QString ventilatorAddress_;
     QString sinkAddress_;
 

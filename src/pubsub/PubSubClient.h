@@ -49,18 +49,18 @@ class PubSubClient : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit PubSubClient(const QString& address, const QString& topic, QObject *parent)
-        : super(parent), address_(address), topic_(topic)
+    explicit PubSubClient(ZMQContext& context, const QString& address, const QString& topic, QObject *parent)
+        : super(parent)
+        , context_(&context)
+        , address_(address), topic_(topic)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        socket_ = context->createSocket(ZMQSocket::TYP_SUB);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 
     void run()
     {
+        socket_ = context_->createSocket(ZMQSocket::TYP_SUB);
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
+
         socket_->subscribeTo(topic_);
         socket_->connectTo(address_);
     }
@@ -72,6 +72,7 @@ protected slots:
     }
 
 private:
+    ZMQContext* context_;
     QString address_;
     QString topic_;
 

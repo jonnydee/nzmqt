@@ -51,17 +51,16 @@ class ReqRepServer : public QObject, public QRunnable
     typedef QObject super;
 
 public:
-    explicit ReqRepServer(const QString& address, const QString& replyMsg, QObject* parent)
-        : super(parent), address_(address), replyMsg_(replyMsg)
+    explicit ReqRepServer(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent)
+        : super(parent)
+        , context_(&context)
+        , address_(address), replyMsg_(replyMsg)
     {
     }
 
     void run()
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        socket_ = context->createSocket(ZMQSocket::TYP_REP);
+        socket_ = context_->createSocket(ZMQSocket::TYP_REP);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
 
         socket_->bindTo(address_);
@@ -83,6 +82,7 @@ protected slots:
     }
 
 private:
+    ZMQContext* context_;
     QString address_;
     QString replyMsg_;
 
