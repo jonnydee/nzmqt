@@ -186,8 +186,6 @@ namespace nzmqt
 
         using zmqsuper::operator void *;
 
-        using zmqsuper::close;
-
         void setOption(Option optName_, const void *optionVal_, size_t optionValLen_);
 
         void setOption(Option optName_, const char* str_);
@@ -272,10 +270,15 @@ namespace nzmqt
     signals:
         void messageReceived(const QList<QByteArray>&);
 
+    public slots:
+        void close();
+
     protected:
         ZMQSocket(ZMQContext* context_, Type type_);
 
     private:
+        friend class ZMQContext;
+
         ZMQContext* m_context;
     };
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::Events)
