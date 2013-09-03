@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef SAMPLEBASE_HPP
-#define SAMPLEBASE_HPP
+#ifndef NZMQT_SAMPLEBASE_H
+#define NZMQT_SAMPLEBASE_H
 
 #include "nzmqt/nzmqt.hpp"
 
@@ -120,4 +120,4 @@ inline void SampleBase::sleep(unsigned long msecs)
 
 }
 
-#endif // SAMPLEBASE_HPP
+#endif // NZMQT_SAMPLEBASE_H

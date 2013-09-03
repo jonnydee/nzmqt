@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUSHPULLWORKER_H
-#define PUSHPULLWORKER_H
+#ifndef NZMQT_PUSHPULLWORKER_H
+#define NZMQT_PUSHPULLWORKER_H
 
 #include "common/SampleBase.h"
 
@@ -90,4 +90,4 @@ private:
 
 }
 
-#endif // PUSHPULLWORKER_H
+#endif // NZMQT_PUSHPULLWORKER_H

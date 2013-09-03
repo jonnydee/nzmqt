@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef REQREPCLIENT_H
-#define REQREPCLIENT_H
+#ifndef NZMQT_REQREPCLIENT_H
+#define NZMQT_REQREPCLIENT_H
 
 #include "common/SampleBase.h"
 
@@ -98,4 +98,4 @@ private:
 
 }
 
-#endif // REQREPCLIENT_H
+#endif // NZMQT_REQREPCLIENT_H

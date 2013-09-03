@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUBSUBCLIENT_H
-#define PUBSUBCLIENT_H
+#ifndef NZMQT_PUBSUBCLIENT_H
+#define NZMQT_PUBSUBCLIENT_H
 
 #include "common/SampleBase.h"
 
@@ -81,4 +81,4 @@ private:
 
 }
 
-#endif // PUBSUBCLIENT_H
+#endif // NZMQT_PUBSUBCLIENT_H

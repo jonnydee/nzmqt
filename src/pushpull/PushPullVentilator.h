@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUSHPULLVENTILATOR_H
-#define PUSHPULLVENTILATOR_H
+#ifndef NZMQT_PUSHPULLVENTILATOR_H
+#define NZMQT_PUSHPULLVENTILATOR_H
 
 #include "common/SampleBase.h"
 
@@ -108,4 +108,4 @@ private:
 
 }
 
-#endif // PUSHPULLVENTILATOR_H
+#endif // NZMQT_PUSHPULLVENTILATOR_H

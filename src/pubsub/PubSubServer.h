@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUBSUBSERVER_H
-#define PUBSUBSERVER_H
+#ifndef NZMQT_PUBSUBSERVER_H
+#define NZMQT_PUBSUBSERVER_H
 
 #include "common/SampleBase.h"
 
@@ -92,4 +92,4 @@ private:
 
 }
 
-#endif // PUBSUBSERVER_H
+#endif // NZMQT_PUBSUBSERVER_H

@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef REQREPSERVER_H
-#define REQREPSERVER_H
+#ifndef NZMQT_REQREPSERVER_H
+#define NZMQT_REQREPSERVER_H
 
 #include "common/SampleBase.h"
 
@@ -90,4 +90,4 @@ private:
 
 }
 
-#endif // REQREPSERVER_H
+#endif // NZMQT_REQREPSERVER_H

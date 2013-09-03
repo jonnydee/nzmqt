@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQTAPP_H
-#define NZMQTAPP_H
+#ifndef NZMQT_NZMQTAPP_H
+#define NZMQT_NZMQTAPP_H
 
 #include <stdexcept>
 #include <QCoreApplication>
@@ -217,4 +217,4 @@ Push-Pull Sample:\n\
 
 }
 
-#endif // NZMQTAPP_H
+#endif // NZMQT_NZMQTAPP_H
