@@ -24,15 +24,16 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef TOOLS_H
-#define TOOLS_H
+#ifndef SAMPLEBASE_HPP
+#define SAMPLEBASE_HPP
 
-// For sleep.
-#ifdef Q_OS_WIN
- #include <windows.h>
-#else
- #include <time.h>
-#endif
+#include "nzmqt/nzmqt.hpp"
+
+#include <QDebug>
+#include <QEventLoop>
+#include <QObject>
+#include <QRunnable>
+#include <QThread>
 
 
 namespace nzmqt
@@ -41,18 +42,82 @@ namespace nzmqt
 namespace samples
 {
 
-inline void sleep(int msec)
+class SampleBase : public QObject, public QRunnable
 {
-#ifdef Q_OS_WIN
-    Sleep(uint(msec));
-#else
-    struct timespec ts = { msec / 1000, (msec % 1000) * 1000 * 1000 };
-    nanosleep(&ts, NULL);
-#endif
+    Q_OBJECT
+    typedef QObject super;
+
+public slots:
+    void run();
+    void stop();
+
+protected:
+    SampleBase(QObject* parent);
+
+    // Sample subclass needs to implement this method.
+    // It will be called by run() method implemented by this class.
+    virtual void runImpl() = 0;
+
+    // Sample subclass can use this method to wait for a call to stop()
+    // method.
+    void waitUntilStopped();
+
+    static void sleep(unsigned long msecs);
+
+private:
+    volatile bool stopped_;
+
+    class ThreadTools : private QThread
+    {
+    public:
+        using QThread::msleep;
+
+    private:
+        ThreadTools() {}
+    };
+};
+
+inline SampleBase::SampleBase(QObject* parent)
+    : super(parent)
+    , stopped_(true)
+{
+}
+
+inline void SampleBase::run()
+{
+    try
+    {
+        stopped_ = false;
+        runImpl();
+    }
+    catch (const nzmqt::ZMQException& ex)
+    {
+        qDebug() << Q_FUNC_INFO << "Exception:" << ex.what();
+    }
+}
+
+inline void SampleBase::stop()
+{
+    stopped_ = true;
+}
+
+inline void SampleBase::waitUntilStopped()
+{
+    QEventLoop eventLoop;
+    while (!stopped_)
+    {
+        sleep(50);
+        eventLoop.processEvents();
+    }
+}
+
+inline void SampleBase::sleep(unsigned long msecs)
+{
+    ThreadTools::msleep(msecs);
 }
 
 }
 
 }
 
-#endif // TOOLS_H
+#endif // SAMPLEBASE_HPP

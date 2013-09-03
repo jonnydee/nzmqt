@@ -27,15 +27,13 @@
 #ifndef PUSHPULLSINK_H
 #define PUSHPULLSINK_H
 
-#include <QObject>
-#include <QCoreApplication>
-#include <QTime>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
-#include <QByteArray>
+#include "common/SampleBase.h"
 
-#include "nzmqt/nzmqt.hpp"
+#include <nzmqt/nzmqt.hpp>
+
+#include <QByteArray>
+#include <QList>
+#include <QTime>
 
 
 namespace nzmqt
@@ -44,26 +42,26 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullSink : public QObject, public QRunnable
+class PushPullSink : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
     explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent)
         : super(parent)
-        , context_(&context)
         , sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
     {
+        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        sink_ = context_->createSocket(ZMQSocket::TYP_PULL, this);
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
-
         sink_->bindTo(sinkAddress_);
+
+        waitUntilStopped();
     }
 
 protected slots:
@@ -99,7 +97,6 @@ protected slots:
     }
 
 private:
-    ZMQContext* context_;
     QString sinkAddress_;
 
     ZMQSocket* sink_;

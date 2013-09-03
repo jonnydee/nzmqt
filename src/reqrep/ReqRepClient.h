@@ -27,16 +27,14 @@
 #ifndef REQREPCLIENT_H
 #define REQREPCLIENT_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.h"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-#include <QTimer>
 #include <QDateTime>
-
-
-#include "nzmqt/nzmqt.hpp"
+#include <QList>
+#include <QTimer>
 
 
 namespace nzmqt
@@ -45,33 +43,28 @@ namespace nzmqt
 namespace samples
 {
 
-class ReqRepClient : public QObject, public QRunnable
+class ReqRepClient : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
     explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent)
         : super(parent)
-        , context_(&context)
         , address_(address), requestMsg_(requestMsg)
     {
+        socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_REQ, this);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
-
-        timer_ = new QTimer(socket_);
-        timer_->setSingleShot(true);
-        timer_->setInterval(1000);
-        connect(timer_, SIGNAL(timeout()), SLOT(sendRequest()));
-
         socket_->connectTo(address_);
 
-        timer_->start();
+        QTimer::singleShot(1000, this, SLOT(sendRequest()));
+
+        waitUntilStopped();
     }
 
 protected slots:
@@ -91,16 +84,14 @@ protected slots:
         qDebug() << "ReqRepClient::replyReceived> " << reply;
 
         // Start timer again in order to trigger the next sendRequest() call.
-        timer_->start();
+        QTimer::singleShot(1000, this, SLOT(sendRequest()));
     }
 
 private:
-    ZMQContext* context_;
     QString address_;
     QString requestMsg_;
 
     ZMQSocket* socket_;
-    QTimer* timer_;
 };
 
 }

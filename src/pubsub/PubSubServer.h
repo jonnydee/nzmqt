@@ -27,15 +27,14 @@
 #ifndef PUBSUBSERVER_H
 #define PUBSUBSERVER_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
-#include <QByteArray>
-#include <QTimer>
-#include <QDateTime>
+#include "common/SampleBase.h"
 
-#include "nzmqt/nzmqt.hpp"
+#include <nzmqt/nzmqt.hpp>
+
+#include <QByteArray>
+#include <QDateTime>
+#include <QList>
+#include <QTimer>
 
 
 namespace nzmqt
@@ -44,29 +43,30 @@ namespace nzmqt
 namespace samples
 {
 
-class PubSubServer : public QObject, public QRunnable
+class PubSubServer : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit PubSubServer(ZMQContext& context, const QString& address, const QString& topic, QObject* parent)
+    explicit PubSubServer(ZMQContext& context, const QString& address, const QString& topic, QObject* parent = 0)
         : super(parent)
-        , context_(&context)
         , address_(address), topic_(topic)
     {
+        socket_ = context.createSocket(ZMQSocket::TYP_PUB);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_PUB, this);
         socket_->bindTo(address_);
 
-        QTimer* timer = new QTimer(socket_);
-        timer->setInterval(1000);
-        connect(timer, SIGNAL(timeout()), SLOT(sendPing()));
-        timer->start();
+        QTimer timer;
+        timer.setInterval(1000);
+        connect(&timer, SIGNAL(timeout()), SLOT(sendPing()), Qt::QueuedConnection);
+        timer.start();
+
+        waitUntilStopped();
     }
 
 protected slots:
@@ -82,7 +82,6 @@ protected slots:
     }
 
 private:
-    ZMQContext* context_;
     QString address_;
     QString topic_;
 

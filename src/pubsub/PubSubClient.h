@@ -27,13 +27,12 @@
 #ifndef PUBSUBCLIENT_H
 #define PUBSUBCLIENT_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
-#include <QByteArray>
+#include "common/SampleBase.h"
 
-#include "nzmqt/nzmqt.hpp"
+#include <nzmqt/nzmqt.hpp>
+
+#include <QByteArray>
+#include <QList>
 
 
 namespace nzmqt
@@ -42,27 +41,27 @@ namespace nzmqt
 namespace samples
 {
 
-class PubSubClient : public QObject, public QRunnable
+class PubSubClient : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit PubSubClient(ZMQContext& context, const QString& address, const QString& topic, QObject *parent)
+    explicit PubSubClient(ZMQContext& context, const QString& address, const QString& topic, QObject *parent = 0)
         : super(parent)
-        , context_(&context)
         , address_(address), topic_(topic)
     {
+        socket_ = context.createSocket(ZMQSocket::TYP_SUB);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_SUB, this);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
-
         socket_->subscribeTo(topic_);
         socket_->connectTo(address_);
+
+        waitUntilStopped();
     }
 
 protected slots:
@@ -72,7 +71,6 @@ protected slots:
     }
 
 private:
-    ZMQContext* context_;
     QString address_;
     QString topic_;
 

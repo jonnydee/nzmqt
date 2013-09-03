@@ -27,15 +27,13 @@
 #ifndef REQREPSERVER_H
 #define REQREPSERVER_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
-#include <QByteArray>
-#include <QTimer>
-#include <QDateTime>
+#include "common/SampleBase.h"
 
-#include "nzmqt/nzmqt.hpp"
+#include <nzmqt/nzmqt.hpp>
+
+#include <QByteArray>
+#include <QDateTime>
+#include <QList>
 
 
 namespace nzmqt
@@ -44,26 +42,26 @@ namespace nzmqt
 namespace samples
 {
 
-class ReqRepServer : public QObject, public QRunnable
+class ReqRepServer : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
     explicit ReqRepServer(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent)
         : super(parent)
-        , context_(&context)
         , address_(address), replyMsg_(replyMsg)
     {
+        socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        socket_ = context_->createSocket(ZMQSocket::TYP_REP, this);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
-
         socket_->bindTo(address_);
+
+        waitUntilStopped();
     }
 
 protected slots:
@@ -82,7 +80,6 @@ protected slots:
     }
 
 private:
-    ZMQContext* context_;
     QString address_;
     QString replyMsg_;
 

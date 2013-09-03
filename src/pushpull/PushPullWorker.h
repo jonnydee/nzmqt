@@ -27,16 +27,12 @@
 #ifndef PUSHPULLWORKER_H
 #define PUSHPULLWORKER_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.h"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-#include <QTimer>
-
-#include "nzmqt/nzmqt.hpp"
-
-#include "common/Tools.h" // For sleep() function.
+#include <QList>
 
 
 namespace nzmqt
@@ -45,29 +41,28 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullWorker : public QObject, public QRunnable
+class PushPullWorker : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
     explicit PushPullWorker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
         : super(parent)
-        , context_(&context)
         , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
     {
+        ventilator_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        ventilator_ = context_->createSocket(ZMQSocket::TYP_PULL, this);
         connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
-
-        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH, this);
-
         sink_->connectTo(sinkAddress_);
         ventilator_->connectTo(ventilatorAddress_);
+
+        waitUntilStopped();
     }
 
 protected slots:
@@ -84,7 +79,6 @@ protected slots:
     }
 
 private:
-    ZMQContext* context_;
     QString ventilatorAddress_;
     QString sinkAddress_;
 

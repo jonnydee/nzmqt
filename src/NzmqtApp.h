@@ -168,6 +168,9 @@ protected slots:
 
             // Run command.
             commandImpl->run();
+
+            // Quit application.
+            quit();
         }
         catch (std::exception& ex)
         {

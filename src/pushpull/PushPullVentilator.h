@@ -27,17 +27,14 @@
 #ifndef PUSHPULLVENTILATOR_H
 #define PUSHPULLVENTILATOR_H
 
-#include <QCoreApplication>
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
-#include <QByteArray>
-#include <QTimer>
-#include <QDateTime>
-#include <QTextStream>
+#include "common/SampleBase.h"
 
-#include "nzmqt/nzmqt.hpp"
+#include <nzmqt/nzmqt.hpp>
+
+#include <QByteArray>
+#include <QDateTime>
+#include <QList>
+#include <QTextStream>
 
 
 namespace nzmqt
@@ -46,25 +43,23 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullVentilator : public QObject, public QRunnable
+class PushPullVentilator : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
     explicit PushPullVentilator(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
         : super(parent)
-        , context_(&context)
         , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
     {
+        ventilator_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
     }
 
-    void run()
+protected:
+    void runImpl()
     {
-        ventilator_ = context_->createSocket(ZMQSocket::TYP_PUSH, this);
-        sink_ = context_->createSocket(ZMQSocket::TYP_PUSH, this);
-
         ventilator_->bindTo(ventilatorAddress_);
         sink_->connectTo(sinkAddress_);
 
@@ -98,11 +93,9 @@ public:
         }
 
         qDebug() << "Total expected cost: " << totalCost << " msec";
-        QCoreApplication::instance()->quit();
     }
 
 private:
-    ZMQContext* context_;
     QString ventilatorAddress_;
     QString sinkAddress_;
     quint32 numberOfWorkItems_;
