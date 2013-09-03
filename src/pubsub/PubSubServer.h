@@ -63,7 +63,7 @@ protected:
 
         QTimer timer;
         timer.setInterval(1000);
-        connect(&timer, SIGNAL(timeout()), SLOT(sendPing()), Qt::QueuedConnection);
+        connect(&timer, SIGNAL(timeout()), SLOT(sendPing()));
         timer.start();
 
         waitUntilStopped();
