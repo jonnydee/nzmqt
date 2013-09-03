@@ -52,7 +52,9 @@ public slots:
     void stop();
 
 protected:
-    SampleBase(QObject* parent);
+    SampleBase(ZMQContext& context, QObject* parent);
+
+    ZMQContext& context() const;
 
     // Sample subclass needs to implement this method.
     // It will be called by run() method implemented by this class.
@@ -65,6 +67,7 @@ protected:
     static void sleep(unsigned long msecs);
 
 private:
+    ZMQContext* context_;
     volatile bool stopped_;
 
     class ThreadTools : private QThread
@@ -77,10 +80,16 @@ private:
     };
 };
 
-inline SampleBase::SampleBase(QObject* parent)
+inline SampleBase::SampleBase(ZMQContext& context, QObject* parent)
     : super(parent)
+    , context_(&context)
     , stopped_(true)
 {
+}
+
+inline ZMQContext& SampleBase::context() const
+{
+    return *context_;
 }
 
 inline void SampleBase::run()

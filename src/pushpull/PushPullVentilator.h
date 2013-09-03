@@ -50,17 +50,24 @@ class PushPullVentilator : public SampleBase
 
 public:
     explicit PushPullVentilator(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
-        : super(parent)
+        : super(context, parent)
         , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
+        , ventilator_(0), sink_(0)
     {
-        ventilator_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
-        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+    }
+
+    ~PushPullVentilator()
+    {
+        delete sink_;
+        delete ventilator_;
     }
 
 protected:
     void runImpl()
     {
+        ventilator_ = context().createSocket(ZMQSocket::TYP_PUSH);
         ventilator_->bindTo(ventilatorAddress_);
+        sink_ = context().createSocket(ZMQSocket::TYP_PUSH);
         sink_->connectTo(sinkAddress_);
 
         // Wait for user start.

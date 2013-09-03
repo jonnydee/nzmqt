@@ -50,15 +50,21 @@ class ReqRepClient : public SampleBase
 
 public:
     explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent)
-        : super(parent)
+        : super(context, parent)
         , address_(address), requestMsg_(requestMsg)
+        , socket_(0)
     {
-        socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
+    }
+
+    ~ReqRepClient()
+    {
+        delete socket_;
     }
 
 protected:
     void runImpl()
     {
+        socket_ = context().createSocket(ZMQSocket::TYP_REQ);
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
         socket_->connectTo(address_);
 

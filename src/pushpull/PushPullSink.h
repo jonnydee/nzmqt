@@ -49,15 +49,21 @@ class PushPullSink : public SampleBase
 
 public:
     explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent)
-        : super(parent)
+        : super(context, parent)
         , sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
+        , sink_(0)
     {
-        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+    }
+
+    ~PushPullSink()
+    {
+        delete sink_;
     }
 
 protected:
     void runImpl()
     {
+        sink_ = context().createSocket(ZMQSocket::TYP_PULL);
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
         sink_->bindTo(sinkAddress_);
 
