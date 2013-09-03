@@ -105,8 +105,8 @@ protected slots:
 
 private:
     QString sinkAddress_;
-
     ZMQSocket* sink_;
+
     int numberOfWorkItems_;
     QTime stopWatch_;
 };
