@@ -353,7 +353,10 @@ NZMQT_INLINE ZMQContext::~ZMQContext()
     foreach (ZMQSocket* socket, m_sockets)
     {
         socket->m_context = 0;
-        socket->close();
+        // As stated by 0MQ, close() must ONLY be called from the thread
+        // owning the socket. So we use 'invokeMethod' which (hopefully)
+        // results in a 'close' call from within the socket's thread.
+        QMetaObject::invokeMethod(socket, "close");
     }
 }
 
