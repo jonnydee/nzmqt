@@ -50,8 +50,9 @@ class PushPullSink : public SampleBase
 public:
     explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent)
         : super(context, parent)
-        , sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
+        , sinkAddress_(sinkAddress)
         , sink_(0)
+        , numberOfWorkItems_(-1)
     {
     }
 
