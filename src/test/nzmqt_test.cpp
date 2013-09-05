@@ -42,7 +42,6 @@ public:
     NzmqtTest();
 
 private slots:
-    void testContextInstance();
     void testPubSub();
 
 protected slots:
@@ -53,8 +52,6 @@ protected slots:
     void clientIndicatedFailure(const QString& what);
 
 private:
-    nzmqt::ZMQContext* context_;
-
     QList< QList<QByteArray> > serverSentPings_;
     QStringList serverIndicatedFailures_;
 
@@ -63,7 +60,6 @@ private:
 };
 
 NzmqtTest::NzmqtTest()
-    : context_(nzmqt::createDefaultContext(this))
 {
     qRegisterMetaType< QList<QByteArray> >();
 }
@@ -92,18 +88,13 @@ void NzmqtTest::clientIndicatedFailure(const QString& what)
     qDebug() << Q_FUNC_INFO << what;
 }
 
-void NzmqtTest::testContextInstance()
-{
-    QVERIFY2(context_, "No context available!");
-}
-
 void NzmqtTest::testPubSub()
 {
     try {
-        context_->start();
+        QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
         QThread* serverThread = new QThread;
-        samples::PubSubServer* server = new samples::PubSubServer(*context_, "inproc://pubsub", "ping");
+        samples::PubSubServer* server = new samples::PubSubServer(*context, "inproc://pubsub", "ping");
         server->moveToThread(serverThread);
         QVERIFY(connect(serverThread, SIGNAL(started()), server, SLOT(start())));
         QVERIFY(connect(server, SIGNAL(finished()), serverThread, SLOT(quit())));
@@ -111,7 +102,7 @@ void NzmqtTest::testPubSub()
         QVERIFY(connect(serverThread, SIGNAL(finished()), serverThread, SLOT(deleteLater())));
 
         QThread* clientThread = new QThread;
-        samples::PubSubClient* client = new samples::PubSubClient(*context_, "inproc://pubsub", "ping");
+        samples::PubSubClient* client = new samples::PubSubClient(*context, "inproc://pubsub", "ping");
         client->moveToThread(clientThread);
         QVERIFY(connect(clientThread, SIGNAL(started()), client, SLOT(start())));
         QVERIFY(connect(client, SIGNAL(finished()), clientThread, SLOT(quit())));
@@ -125,35 +116,37 @@ void NzmqtTest::testPubSub()
         QVERIFY(connect(client, SIGNAL(pingReceived(const QList<QByteArray>&)), SLOT(clientReceivedPing(QList<QByteArray>))));
         QVERIFY(connect(client, SIGNAL(failure(const QString&)), SLOT(clientIndicatedFailure(const QString&))));
 
+        context->start();
+        QTest::qWait(500);
         serverThread->start();
         QTest::qWait(500);
         clientThread->start();
 
         QTimer::singleShot(6000, server, SLOT(stop()));
         QTimer::singleShot(6000, client, SLOT(stop()));
+
+        QTest::qWait(8000);
+
+        qDebug() << "Client pings received:" << clientReceivedPings_;
+        if (!clientIndicatedFailures_.isEmpty())
+            qDebug() << "Client indicated failures:" << clientIndicatedFailures_;
+
+        qDebug() << "Server pings sent:" << serverSentPings_;
+        if (!serverIndicatedFailures_.isEmpty())
+            qDebug() << "Server indicated failures:" << serverIndicatedFailures_;
+
+        QVERIFY2(serverIndicatedFailures_.isEmpty(), "Server indicated failures.");
+        QVERIFY2(clientIndicatedFailures_.isEmpty(), "Client indicated failures.");
+
+        QVERIFY2(serverSentPings_.size() > 3, "Server didn't send any/enough pings.");
+        QVERIFY2(clientReceivedPings_.size() > 3, "Client didn't receive any/enough pings.");
+
+        QVERIFY2(qAbs(serverSentPings_.size() - clientReceivedPings_.size()) < 3, "Server and client communication flawed.");
     }
     catch (std::exception& ex)
     {
         QFAIL(ex.what());
     }
-
-    QTest::qWait(8000);
-
-    qDebug() << "Client pings received:" << clientReceivedPings_;
-    if (!clientIndicatedFailures_.isEmpty())
-        qDebug() << "Client indicated failures:" << clientIndicatedFailures_;
-
-    qDebug() << "Server pings sent:" << serverSentPings_;
-    if (!serverIndicatedFailures_.isEmpty())
-        qDebug() << "Server indicated failures:" << serverIndicatedFailures_;
-
-    QVERIFY2(serverIndicatedFailures_.isEmpty(), "Server indicated failures.");
-    QVERIFY2(clientIndicatedFailures_.isEmpty(), "Client indicated failures.");
-
-    QVERIFY2(serverSentPings_.size() > 3, "Server didn't send any/enough pings.");
-    QVERIFY2(clientReceivedPings_.size() > 3, "Client didn't receive any/enough pings.");
-
-    QVERIFY2(qAbs(serverSentPings_.size() - clientReceivedPings_.size()) < 3, "Server and client communication flawed.");
 }
 
 }
