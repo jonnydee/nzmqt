@@ -41,22 +41,11 @@ class NzmqtTest : public QObject
 public:
     NzmqtTest();
 
+protected:
+    QThread* makeExecutionThread(samples::SampleBase& sample) const;
+
 private slots:
     void testPubSub();
-
-protected slots:
-    void serverSentPing(const QList<QByteArray>& message);
-    void serverIndicatedFailure(const QString& what);
-
-    void clientReceivedPing(const QList<QByteArray>& message);
-    void clientIndicatedFailure(const QString& what);
-
-private:
-    QList< QList<QByteArray> > serverSentPings_;
-    QStringList serverIndicatedFailures_;
-
-    QList< QList<QByteArray> > clientReceivedPings_;
-    QStringList clientIndicatedFailures_;
 };
 
 NzmqtTest::NzmqtTest()
@@ -64,28 +53,18 @@ NzmqtTest::NzmqtTest()
     qRegisterMetaType< QList<QByteArray> >();
 }
 
-void NzmqtTest::serverSentPing(const QList<QByteArray>& message)
+QThread* NzmqtTest::makeExecutionThread(samples::SampleBase& sample) const
 {
-    serverSentPings_ << message;
-    qDebug() << Q_FUNC_INFO << message;
-}
+    QThread* thread = new QThread;
+    sample.moveToThread(thread);
 
-void NzmqtTest::serverIndicatedFailure(const QString& what)
-{
-    serverIndicatedFailures_ << what;
-    qDebug() << Q_FUNC_INFO << what;
-}
+    bool connected = false;
+    connected = connect(thread, SIGNAL(started()), &sample, SLOT(start()));         Q_ASSERT(connected);
+    connected = connect(&sample, SIGNAL(finished()), thread, SLOT(quit()));         Q_ASSERT(connected);
+    connected = connect(&sample, SIGNAL(finished()), &sample, SLOT(deleteLater())); Q_ASSERT(connected);
+    connected = connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));   Q_ASSERT(connected);
 
-void NzmqtTest::clientReceivedPing(const QList<QByteArray>& message)
-{
-    clientReceivedPings_ << message;
-    qDebug() << Q_FUNC_INFO << message;
-}
-
-void NzmqtTest::clientIndicatedFailure(const QString& what)
-{
-    clientIndicatedFailures_ << what;
-    qDebug() << Q_FUNC_INFO << what;
+    return thread;
 }
 
 void NzmqtTest::testPubSub()
@@ -93,55 +72,59 @@ void NzmqtTest::testPubSub()
     try {
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
-        QThread* serverThread = new QThread;
-        samples::PubSubServer* server = new samples::PubSubServer(*context, "inproc://pubsub", "ping");
-        server->moveToThread(serverThread);
-        QVERIFY(connect(serverThread, SIGNAL(started()), server, SLOT(start())));
-        QVERIFY(connect(server, SIGNAL(finished()), serverThread, SLOT(quit())));
-        QVERIFY(connect(server, SIGNAL(finished()), server, SLOT(deleteLater())));
-        QVERIFY(connect(serverThread, SIGNAL(finished()), serverThread, SLOT(deleteLater())));
+        // Create publisher.
+        samples::PubSubServer* publisher = new samples::PubSubServer(*context, "inproc://pubsub", "ping");
+        QSignalSpy spyPublisherPingSent(publisher, SIGNAL(pingSent(const QList<QByteArray>&)));
+        QSignalSpy spyPublisherFailure(publisher, SIGNAL(failure(const QString&)));
+        QSignalSpy spyPublisherFinished(publisher, SIGNAL(finished()));
+        // Create publisher execution thread.
+        QThread* publisherThread = makeExecutionThread(*publisher);
+        QSignalSpy spyPublisherThreadFinished(publisherThread, SIGNAL(finished()));
 
-        QThread* clientThread = new QThread;
-        samples::PubSubClient* client = new samples::PubSubClient(*context, "inproc://pubsub", "ping");
-        client->moveToThread(clientThread);
-        QVERIFY(connect(clientThread, SIGNAL(started()), client, SLOT(start())));
-        QVERIFY(connect(client, SIGNAL(finished()), clientThread, SLOT(quit())));
-        QVERIFY(connect(client, SIGNAL(finished()), client, SLOT(deleteLater())));
-        QVERIFY(connect(clientThread, SIGNAL(finished()), clientThread, SLOT(deleteLater())));
+        // Create subscriber.
+        samples::PubSubClient* subscriber = new samples::PubSubClient(*context, "inproc://pubsub", "ping");
+        QSignalSpy spySubscriberPingReceived(subscriber, SIGNAL(pingReceived(const QList<QByteArray>&)));
+        QSignalSpy spySubscriberFailure(subscriber, SIGNAL(failure(const QString&)));
+        QSignalSpy spySubscriberFinished(subscriber, SIGNAL(finished()));
+        // Create subscriber execution thread.
+        QThread* subscriberThread = makeExecutionThread(*subscriber);
+        QSignalSpy spySubscriberThreadFinished(subscriberThread, SIGNAL(finished()));
 
-        // Connect to server signals for checking test condition.
-        QVERIFY(connect(server, SIGNAL(pingSent(const QList<QByteArray>&)), SLOT(serverSentPing(const QList<QByteArray>&))));
-        QVERIFY(connect(server, SIGNAL(failure(const QString&)), SLOT(serverIndicatedFailure(const QString&))));
-        // Connect to client signals for checking test condition.
-        QVERIFY(connect(client, SIGNAL(pingReceived(const QList<QByteArray>&)), SLOT(clientReceivedPing(QList<QByteArray>))));
-        QVERIFY(connect(client, SIGNAL(failure(const QString&)), SLOT(clientIndicatedFailure(const QString&))));
+        //
+        // START TEST
+        //
 
         context->start();
-        QTest::qWait(500);
-        serverThread->start();
-        QTest::qWait(500);
-        clientThread->start();
 
-        QTimer::singleShot(6000, server, SLOT(stop()));
-        QTimer::singleShot(6000, client, SLOT(stop()));
+        publisherThread->start();
+        QTest::qWait(500);
+        subscriberThread->start();
+
+        QTimer::singleShot(6000, publisher, SLOT(stop()));
+        QTimer::singleShot(6000, subscriber, SLOT(stop()));
 
         QTest::qWait(8000);
 
-        qDebug() << "Client pings received:" << clientReceivedPings_;
-        if (!clientIndicatedFailures_.isEmpty())
-            qDebug() << "Client indicated failures:" << clientIndicatedFailures_;
+        //
+        // CHECK POSTCONDITIONS
+        //
 
-        qDebug() << "Server pings sent:" << serverSentPings_;
-        if (!serverIndicatedFailures_.isEmpty())
-            qDebug() << "Server indicated failures:" << serverIndicatedFailures_;
+        qDebug() << "Publisher pings sent:" << spyPublisherPingSent.size();
+        qDebug() << "Subscriber pings received:" << spySubscriberPingReceived.size();
 
-        QVERIFY2(serverIndicatedFailures_.isEmpty(), "Server indicated failures.");
-        QVERIFY2(clientIndicatedFailures_.isEmpty(), "Client indicated failures.");
+        QCOMPARE(spyPublisherFailure.size(), 0);
+        QCOMPARE(spySubscriberFailure.size(), 0);
 
-        QVERIFY2(serverSentPings_.size() > 3, "Server didn't send any/enough pings.");
-        QVERIFY2(clientReceivedPings_.size() > 3, "Client didn't receive any/enough pings.");
+        QVERIFY2(spyPublisherPingSent.size() > 3, "Server didn't send any/enough pings.");
+        QVERIFY2(spySubscriberPingReceived.size() > 3, "Client didn't receive any/enough pings.");
 
-        QVERIFY2(qAbs(serverSentPings_.size() - clientReceivedPings_.size()) < 3, "Server and client communication flawed.");
+        QVERIFY2(qAbs(spyPublisherPingSent.size() - spySubscriberPingReceived.size()) < 3, "Server and client communication flawed.");
+
+        QCOMPARE(spyPublisherFinished.size(), 1);
+        QCOMPARE(spySubscriberFinished.size(), 1);
+
+        QCOMPARE(spyPublisherThreadFinished.size(), 1);
+        QCOMPARE(spySubscriberThreadFinished.size(), 1);
     }
     catch (std::exception& ex)
     {
