@@ -50,27 +50,20 @@ class ReqRepClient : public SampleBase
 
 public:
     explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent)
-        : super(context, parent)
+        : super(parent)
         , address_(address), requestMsg_(requestMsg)
         , socket_(0)
     {
-    }
-
-    ~ReqRepClient()
-    {
-        delete socket_;
+        socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
     }
 
 protected:
-    void runImpl()
+    void startImpl()
     {
-        socket_ = context().createSocket(ZMQSocket::TYP_REQ);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
         socket_->connectTo(address_);
 
         QTimer::singleShot(1000, this, SLOT(sendRequest()));
-
-        waitUntilStopped();
     }
 
 protected slots:

@@ -93,7 +93,7 @@ protected slots:
             }
 
             QString command = args[1];
-            QRunnable* commandImpl = 0;
+            SampleBase* commandImpl = 0;
 
             ZMQContext* context = createDefaultContext(this);
             context->start();
@@ -166,11 +166,10 @@ protected slots:
                 throw std::runtime_error(QString("Unknown command: '%1'").arg(command).toStdString());
             }
 
-            // Run command.
-            commandImpl->run();
-
-            // Quit application.
-            quit();
+            // If command is finished we quit application.
+            connect(commandImpl, SIGNAL(finished()), SLOT(quit()));
+            // Start command.
+            commandImpl->start();
         }
         catch (std::exception& ex)
         {

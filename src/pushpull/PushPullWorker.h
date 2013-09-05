@@ -48,28 +48,21 @@ class PushPullWorker : public SampleBase
 
 public:
     explicit PushPullWorker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
-        : super(context, parent)
+        : super(parent)
         , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
         , ventilator_(0), sink_(0)
     {
-    }
+        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
 
-    ~PushPullWorker()
-    {
-        delete sink_;
-        delete ventilator_;
+        ventilator_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
     }
 
 protected:
-    void runImpl()
+    void startImpl()
     {
-        sink_ = context().createSocket(ZMQSocket::TYP_PUSH);
         sink_->connectTo(sinkAddress_);
-        ventilator_ = context().createSocket(ZMQSocket::TYP_PULL);
-        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
         ventilator_->connectTo(ventilatorAddress_);
-
-        waitUntilStopped();
     }
 
 protected slots:

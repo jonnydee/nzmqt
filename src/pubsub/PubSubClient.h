@@ -48,29 +48,22 @@ class PubSubClient : public SampleBase
 
 public:
     explicit PubSubClient(ZMQContext& context, const QString& address, const QString& topic, QObject *parent = 0)
-        : super(context, parent)
+        : super(parent)
         , address_(address), topic_(topic)
         , socket_(0)
     {
-    }
-
-    ~PubSubClient()
-    {
-        delete socket_;
+        socket_ = context.createSocket(ZMQSocket::TYP_SUB, this);
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 
 signals:
     void pingReceived(const QList<QByteArray>& message);
 
 protected:
-    void runImpl()
+    void startImpl()
     {
-        socket_ = context().createSocket(ZMQSocket::TYP_SUB);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
         socket_->subscribeTo(topic_);
         socket_->connectTo(address_);
-
-        waitUntilStopped();
     }
 
 protected slots:

@@ -50,32 +50,22 @@ class PubSubServer : public SampleBase
 
 public:
     explicit PubSubServer(ZMQContext& context, const QString& address, const QString& topic, QObject* parent = 0)
-        : super(context, parent)
+        : super(parent)
         , address_(address), topic_(topic)
         , socket_(0)
     {
-    }
-
-    ~PubSubServer()
-    {
-        delete socket_;
+        socket_ = context.createSocket(ZMQSocket::TYP_PUB, this);
     }
 
 signals:
     void pingSent(const QList<QByteArray>& message);
 
 protected:
-    void runImpl()
+    void startImpl()
     {
-        socket_ = context().createSocket(ZMQSocket::TYP_PUB);
         socket_->bindTo(address_);
 
-        QTimer timer;
-        timer.setInterval(1000);
-        connect(&timer, SIGNAL(timeout()), SLOT(sendPing()));
-        timer.start();
-
-        waitUntilStopped();
+        QTimer::singleShot(1000, this, SLOT(sendPing()));
     }
 
 protected slots:
@@ -89,6 +79,8 @@ protected slots:
         socket_->sendMessage(msg);
         qDebug() << "PubSubServer> " << msg;
         emit pingSent(msg);
+
+        QTimer::singleShot(1000, this, SLOT(sendPing()));
     }
 
 private:

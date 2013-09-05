@@ -31,8 +31,6 @@
 
 #include <QDebug>
 #include <QEventLoop>
-#include <QObject>
-#include <QRunnable>
 #include <QThread>
 
 
@@ -42,34 +40,27 @@ namespace nzmqt
 namespace samples
 {
 
-class SampleBase : public QObject, public QRunnable
+class SampleBase : public QObject
 {
     Q_OBJECT
     typedef QObject super;
 
+signals:
+    void finished();
+    void failure(const QString& what);
+
 public slots:
-    void run();
+    void start();
     void stop();
 
 protected:
-    SampleBase(ZMQContext& context, QObject* parent);
+    SampleBase(QObject* parent);
 
-    ZMQContext& context() const;
-
-    // Sample subclass needs to implement this method.
-    // It will be called by run() method implemented by this class.
-    virtual void runImpl() = 0;
-
-    // Sample subclass can use this method to wait for a call to stop()
-    // method.
-    void waitUntilStopped();
+    virtual void startImpl() = 0;
 
     static void sleep(unsigned long msecs);
 
 private:
-    ZMQContext* context_;
-    volatile bool stopped_;
-
     class ThreadTools : private QThread
     {
     public:
@@ -80,44 +71,28 @@ private:
     };
 };
 
-inline SampleBase::SampleBase(ZMQContext& context, QObject* parent)
+inline SampleBase::SampleBase(QObject* parent)
     : super(parent)
-    , context_(&context)
-    , stopped_(true)
 {
 }
 
-inline ZMQContext& SampleBase::context() const
-{
-    return *context_;
-}
-
-inline void SampleBase::run()
+inline void SampleBase::start()
 {
     try
     {
-        stopped_ = false;
-        runImpl();
+        startImpl();
     }
     catch (const nzmqt::ZMQException& ex)
     {
-        qDebug() << Q_FUNC_INFO << "Exception:" << ex.what();
+        qWarning() << Q_FUNC_INFO << "Exception:" << ex.what();
+        emit failure(ex.what());
+        emit finished();
     }
 }
 
 inline void SampleBase::stop()
 {
-    stopped_ = true;
-}
-
-inline void SampleBase::waitUntilStopped()
-{
-    QEventLoop eventLoop;
-    while (!stopped_)
-    {
-        sleep(50);
-        eventLoop.processEvents();
-    }
+    emit finished();
 }
 
 inline void SampleBase::sleep(unsigned long msecs)

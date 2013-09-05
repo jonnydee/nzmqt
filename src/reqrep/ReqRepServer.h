@@ -49,25 +49,18 @@ class ReqRepServer : public SampleBase
 
 public:
     explicit ReqRepServer(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent)
-        : super(context, parent)
+        : super(parent)
         , address_(address), replyMsg_(replyMsg)
         , socket_(0)
     {
-    }
-
-    ~ReqRepServer()
-    {
-        delete socket_;
+        socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
     }
 
 protected:
-    void runImpl()
+    void startImpl()
     {
-        socket_ = context().createSocket(ZMQSocket::TYP_REP);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
         socket_->bindTo(address_);
-
-        waitUntilStopped();
     }
 
 protected slots:
