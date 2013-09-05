@@ -100,6 +100,8 @@ void NzmqtTest::testContextInstance()
 void NzmqtTest::testPubSub()
 {
     try {
+        context_->start();
+
         QThread* serverThread = new QThread;
         samples::PubSubServer* server = new samples::PubSubServer(*context_, "inproc://pubsub", "ping");
         server->moveToThread(serverThread);
