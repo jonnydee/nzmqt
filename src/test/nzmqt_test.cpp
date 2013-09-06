@@ -26,6 +26,8 @@
 
 #include "pubsub/PubSubClient.h"
 #include "pubsub/PubSubServer.h"
+#include "reqrep/ReqRepClient.h"
+#include "reqrep/ReqRepServer.h"
 
 #include <QCoreApplication>
 #include <QString>
@@ -46,6 +48,7 @@ protected:
 
 private slots:
     void testPubSub();
+    void testReqRep();
 };
 
 NzmqtTest::NzmqtTest()
@@ -125,6 +128,71 @@ void NzmqtTest::testPubSub()
 
         QCOMPARE(spyPublisherThreadFinished.size(), 1);
         QCOMPARE(spySubscriberThreadFinished.size(), 1);
+    }
+    catch (std::exception& ex)
+    {
+        QFAIL(ex.what());
+    }
+}
+
+void NzmqtTest::testReqRep()
+{
+    try {
+        QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
+
+        // Create server.
+        samples::ReqRepServer* server = new samples::ReqRepServer(*context, "inproc://reqrep", "world");
+        QSignalSpy spyServerRequestReceived(server, SIGNAL(requestReceived(const QList<QByteArray>&)));
+        QSignalSpy spyServerFailure(server, SIGNAL(failure(const QString&)));
+        QSignalSpy spyServerFinished(server, SIGNAL(finished()));
+        // Create server execution thread.
+        QThread* serverThread = makeExecutionThread(*server);
+        QSignalSpy spyServerThreadFinished(serverThread, SIGNAL(finished()));
+
+        // Create client.
+        samples::ReqRepClient* client = new samples::ReqRepClient(*context, "inproc://reqrep", "hello");
+        QSignalSpy spyClientRequestSent(client, SIGNAL(requestSent(const QList<QByteArray>&)));
+        QSignalSpy spyClientFailure(client, SIGNAL(failure(const QString&)));
+        QSignalSpy spyClientFinished(client, SIGNAL(finished()));
+        // Create client execution thread.
+        QThread* clientThread = makeExecutionThread(*client);
+        QSignalSpy spyClientThreadFinished(clientThread, SIGNAL(finished()));
+
+        //
+        // START TEST
+        //
+
+        context->start();
+
+        serverThread->start();
+        QTest::qWait(500);
+        clientThread->start();
+
+        QTimer::singleShot(6000, server, SLOT(stop()));
+        QTimer::singleShot(6000, client, SLOT(stop()));
+
+        QTest::qWait(8000);
+
+        //
+        // CHECK POSTCONDITIONS
+        //
+
+        qDebug() << "Client requests sent:" << spyClientRequestSent.size();
+        qDebug() << "Server requests received:" << spyServerRequestReceived.size();
+
+        QCOMPARE(spyServerFailure.size(), 0);
+        QCOMPARE(spyClientFailure.size(), 0);
+
+        QVERIFY2(spyServerRequestReceived.size() > 3, "Server didn't send any/enough pings.");
+        QVERIFY2(spyClientRequestSent.size() > 3, "Client didn't receive any/enough pings.");
+
+        QCOMPARE(spyServerRequestReceived.size(), spyClientRequestSent.size());
+
+        QCOMPARE(spyServerFinished.size(), 1);
+        QCOMPARE(spyClientFinished.size(), 1);
+
+        QCOMPARE(spyServerThreadFinished.size(), 1);
+        QCOMPARE(spyClientThreadFinished.size(), 1);
     }
     catch (std::exception& ex)
     {
