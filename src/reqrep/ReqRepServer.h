@@ -48,14 +48,18 @@ class ReqRepServer : public SampleBase
     typedef SampleBase super;
 
 public:
-    explicit ReqRepServer(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent)
+    explicit ReqRepServer(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent = 0)
         : super(parent)
         , address_(address), replyMsg_(replyMsg)
         , socket_(0)
     {
         socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveRequest(const QList<QByteArray>&)));
     }
+
+signals:
+    void requestReceived(const QList<QByteArray>& request);
+    void replySent(const QList<QByteArray>& request);
 
 protected:
     void startImpl()
@@ -64,11 +68,12 @@ protected:
     }
 
 protected slots:
-    void requestReceived(const QList<QByteArray>& request)
+    void receiveRequest(const QList<QByteArray>& request)
     {
         static quint64 counter = 0;
 
         qDebug() << "ReqRepServer::requestReceived> " << request;
+        emit requestReceived(request);
 
         QList<QByteArray> reply;
         reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
@@ -76,6 +81,7 @@ protected slots:
         reply += request; // We also append original request.
         qDebug() << "ReqRepServer::sendReply> " << reply;
         socket_->sendMessage(reply);
+        emit replySent(reply);
     }
 
 private:

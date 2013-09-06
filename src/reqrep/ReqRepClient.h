@@ -49,14 +49,18 @@ class ReqRepClient : public SampleBase
     typedef SampleBase super;
 
 public:
-    explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent)
+    explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent = 0)
         : super(parent)
         , address_(address), requestMsg_(requestMsg)
         , socket_(0)
     {
         socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(replyReceived(const QList<QByteArray>&)));
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveReply(const QList<QByteArray>&)));
     }
+
+signals:
+    void requestSent(const QList<QByteArray>& request);
+    void replyReceived(const QList<QByteArray>& reply);
 
 protected:
     void startImpl()
@@ -76,11 +80,13 @@ protected slots:
         request += requestMsg_.toLocal8Bit();
         qDebug() << "ReqRepClient::sendRequest> " << request;
         socket_->sendMessage(request);
+        emit requestSent(request);
     }
 
-    void replyReceived(const QList<QByteArray>& reply)
+    void receiveReply(const QList<QByteArray>& reply)
     {
         qDebug() << "ReqRepClient::replyReceived> " << reply;
+        emit replyReceived(reply);
 
         // Start timer again in order to trigger the next sendRequest() call.
         QTimer::singleShot(1000, this, SLOT(sendRequest()));
