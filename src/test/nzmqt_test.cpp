@@ -118,7 +118,7 @@ void NzmqtTest::testPubSub()
         QVERIFY2(spyPublisherPingSent.size() > 3, "Server didn't send any/enough pings.");
         QVERIFY2(spySubscriberPingReceived.size() > 3, "Client didn't receive any/enough pings.");
 
-        QVERIFY2(qAbs(spyPublisherPingSent.size() - spySubscriberPingReceived.size()) < 3, "Server and client communication flawed.");
+        QVERIFY2(qAbs(spyPublisherPingSent.size() - spySubscriberPingReceived.size()) < 3, "Publisher and subscriber communication flawed.");
 
         QCOMPARE(spyPublisherFinished.size(), 1);
         QCOMPARE(spySubscriberFinished.size(), 1);
