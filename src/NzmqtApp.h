@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQTAPP_H
-#define NZMQTAPP_H
+#ifndef NZMQT_NZMQTAPP_H
+#define NZMQT_NZMQTAPP_H
 
 #include <stdexcept>
 #include <QCoreApplication>
@@ -36,13 +36,13 @@
 
 #include "nzmqt/nzmqt.hpp"
 
-#include "pubsub/PubSubClient.h"
-#include "pubsub/PubSubServer.h"
-#include "reqrep/ReqRepClient.h"
-#include "reqrep/ReqRepServer.h"
-#include "pushpull/PushPullVentilator.h"
-#include "pushpull/PushPullWorker.h"
-#include "pushpull/PushPullSink.h"
+#include "pubsub/Publisher.hpp"
+#include "pubsub/Subscriber.hpp"
+#include "reqrep/Requester.hpp"
+#include "reqrep/Replier.hpp"
+#include "pushpull/Ventilator.hpp"
+#include "pushpull/Worker.hpp"
+#include "pushpull/Sink.hpp"
 
 
 namespace nzmqt
@@ -93,43 +93,46 @@ protected slots:
             }
 
             QString command = args[1];
-            QRunnable* commandImpl = 0;
+            SampleBase* commandImpl = 0;
 
-            if ("pubsub-server" == command)
+            ZMQContext* context = createDefaultContext(this);
+            context->start();
+
+            if ("pubsub-publisher" == command)
             {
                 if (args.size() < 4)
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString address = args[2];
                 QString topic = args[3];
-                commandImpl = new PubSubServer(address, topic, this);
+                commandImpl = new pubsub::Publisher(*context, address, topic, this);
             }
-            else if ("pubsub-client" == command)
+            else if ("pubsub-subscriber" == command)
             {
                 if (args.size() < 4)
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString address = args[2];
                 QString topic = args[3];
-                commandImpl = new PubSubClient(address, topic, this);
+                commandImpl = new pubsub::Subscriber(*context, address, topic, this);
             }
-            else if ("reqrep-server" == command)
+            else if ("reqrep-replier" == command)
             {
                 if (args.size() < 4)
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString address = args[2];
                 QString responseMsg = args[3];
-                commandImpl = new ReqRepServer(address, responseMsg, this);
+                commandImpl = new reqrep::Replier(*context, address, responseMsg, this);
             }
-            else if ("reqrep-client" == command)
+            else if ("reqrep-requester" == command)
             {
                 if (args.size() < 4)
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString address = args[2];
                 QString requestMsg = args[3];
-                commandImpl = new ReqRepClient(address, requestMsg, this);
+                commandImpl = new reqrep::Requester(*context, address, requestMsg, this);
             }
             else if ("pushpull-ventilator" == command)
             {
@@ -139,7 +142,13 @@ protected slots:
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
                 quint32 numberOfWorkItems = args[4].toUInt();
-                commandImpl = new PushPullVentilator(ventilatorAddress, sinkAddress, numberOfWorkItems, this);
+                commandImpl = new pushpull::Ventilator(*context, ventilatorAddress, sinkAddress, numberOfWorkItems, this);
+
+                // Wait for user start.
+                QTextStream outStream(stdout);
+                outStream << "Press ENTER if workers and sink are ready!" << ::flush;
+                QTextStream inStream(stdin);
+                inStream.readLine();
             }
             else if ("pushpull-worker" == command)
             {
@@ -148,7 +157,7 @@ protected slots:
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
-                commandImpl = new PushPullWorker(ventilatorAddress, sinkAddress, this);
+                commandImpl = new pushpull::Worker(*context, ventilatorAddress, sinkAddress, this);
             }
             else if ("pushpull-sink" == command)
             {
@@ -156,15 +165,17 @@ protected slots:
                     throw std::runtime_error("Mandatory argument(s) missing!");
 
                 QString sinkAddress = args[2];
-                commandImpl = new PushPullSink(sinkAddress, this);
+                commandImpl = new pushpull::Sink(*context, sinkAddress, this);
             }
             else
             {
                 throw std::runtime_error(QString("Unknown command: '%1'").arg(command).toStdString());
             }
 
-            // Run command.
-            commandImpl->run();
+            // If command is finished we quit application.
+            connect(commandImpl, SIGNAL(finished()), SLOT(quit()));
+            // Start command.
+            commandImpl->start();
         }
         catch (std::exception& ex)
         {
@@ -181,23 +192,23 @@ protected:
 "\n\
 USAGE: %1 [-h|--help]                                                                 -- Show this help message.\n\
 \n\
-USAGE: %1 pubsub-server <address> <topic>                                             -- Start PUB server.\n\
-       %1 pubsub-client <address> <topic>                                             -- Start SUB client.\n\
+USAGE: %1 pubsub-publisher <address> <topic>                                          -- Start PUB server.\n\
+       %1 pubsub-subscriber <address> <topic>                                         -- Start SUB client.\n\
 \n\
-USAGE: %1 reqrep-server <address> <reply-msg>                                         -- Start REQ server.\n\
-       %1 reqrep-client <address> <request-msg>                                       -- Start REP client.\n\
+USAGE: %1 reqrep-replier <address> <reply-msg>                                        -- Start REQ server.\n\
+       %1 reqrep-requester <address> <request-msg>                                    -- Start REP client.\n\
 \n\
 USAGE: %1 pushpull-ventilator <ventilator-address> <sink-address> <numberOfWorkItems> -- Start ventilator.\n\
        %1 pushpull-worker <ventilator-address> <sink-address>                         -- Start a worker.\n\
        %1 pushpull-sink <sink-address>                                                -- Start sink.\n\
 \n\
 Publish-Subscribe Sample:\n\
-* Server: %1 pubsub-server tcp://127.0.0.1:1234 ping\n\
-* Client: %1 pubsub-client tcp://127.0.0.1:1234 ping\n\
+* Server: %1 pubsub-publisher tcp://127.0.0.1:1234 ping\n\
+* Client: %1 pubsub-subscriber tcp://127.0.0.1:1234 ping\n\
 \n\
 Request-Reply Sample:\n\
-* Server: %1 reqrep-server tcp://127.0.0.1:1234 World\n\
-* Client: %1 reqrep-client tcp://127.0.0.1:1234 Hello\n\
+* Server: %1 reqrep-replier tcp://127.0.0.1:1234 World\n\
+* Client: %1 reqrep-requester tcp://127.0.0.1:1234 Hello\n\
 \n\
 Push-Pull Sample:\n\
 * Ventilator:  %1 pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558 100\n\
@@ -211,4 +222,4 @@ Push-Pull Sample:\n\
 
 }
 
-#endif // NZMQTAPP_H
+#endif // NZMQT_NZMQTAPP_H

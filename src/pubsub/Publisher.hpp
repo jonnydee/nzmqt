@@ -24,18 +24,17 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUBSUBSERVER_H
-#define PUBSUBSERVER_H
+#ifndef NZMQT_PUBSUBSERVER_H
+#define NZMQT_PUBSUBSERVER_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.hpp"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-#include <QTimer>
 #include <QDateTime>
-
-#include "nzmqt/nzmqt.hpp"
+#include <QList>
+#include <QTimer>
 
 
 namespace nzmqt
@@ -44,30 +43,33 @@ namespace nzmqt
 namespace samples
 {
 
-class PubSubServer : public QObject, public QRunnable
+namespace pubsub
+{
+
+class Publisher : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit PubSubServer(const QString& address, const QString& topic, QObject* parent)
-        : super(parent), address_(address), topic_(topic)
+    explicit Publisher(ZMQContext& context, const QString& address, const QString& topic, QObject* parent = 0)
+        : super(parent)
+        , address_(address), topic_(topic)
+        , socket_(0)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        socket_ = context->createSocket(ZMQSocket::TYP_PUB);
+        socket_ = context.createSocket(ZMQSocket::TYP_PUB, this);
+        socket_->setObjectName("Publisher.Socket.socket(PUB)");
     }
 
-    void run()
+signals:
+    void pingSent(const QList<QByteArray>& message);
+
+protected:
+    void startImpl()
     {
         socket_->bindTo(address_);
 
-        QTimer* timer = new QTimer(socket_);
-        timer->setInterval(1000);
-        connect(timer, SIGNAL(timeout()), SLOT(sendPing()));
-        timer->start();
+        QTimer::singleShot(1000, this, SLOT(sendPing()));
     }
 
 protected slots:
@@ -79,7 +81,10 @@ protected slots:
         msg += topic_.toLocal8Bit();
         msg += QString("MSG[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toLocalTime().toString(Qt::ISODate)).toLocal8Bit();
         socket_->sendMessage(msg);
-        qDebug() << "PubSubServer> " << msg;
+        qDebug() << "Publisher> " << msg;
+        emit pingSent(msg);
+
+        QTimer::singleShot(1000, this, SLOT(sendPing()));
     }
 
 private:
@@ -93,4 +98,6 @@ private:
 
 }
 
-#endif // PUBSUBSERVER_H
+}
+
+#endif // NZMQT_PUBSUBSERVER_H

@@ -36,6 +36,7 @@
 #include <QList>
 #include <QMutex>
 #include <QObject>
+#include <QMetaType>
 #include <QRunnable>
 #include <QVector>
 
@@ -188,8 +189,6 @@ namespace nzmqt
 
         using zmqsuper::operator void *;
 
-        using zmqsuper::close;
-
         void setOption(Option optName_, const void *optionVal_, size_t optionValLen_);
 
         void setOption(Option optName_, const char* str_);
@@ -274,10 +273,15 @@ namespace nzmqt
     signals:
         void messageReceived(const QList<QByteArray>&);
 
+    public slots:
+        void close();
+
     protected:
         ZMQSocket(ZMQContext* context_, Type type_);
 
     private:
+        friend class ZMQContext;
+
         ZMQContext* m_context;
     };
     Q_DECLARE_OPERATORS_FOR_FLAGS(ZMQSocket::Events)
@@ -305,22 +309,13 @@ namespace nzmqt
 
         using zmqsuper::operator void*;
 
-        // Creates a socket instance of the specified type.
-        // The created instance will have this context set as its parent,
-        // so deleting this context will first delete the socket.
-        // You can call 'ZMQSocket::setParent()' method to change ownership,
-        // but then you need to make sure the socket instance is deleted
-        // before its context. Otherwise, you might encounter blocking
-        // behavior.
-        ZMQSocket* createSocket(ZMQSocket::Type type_);
-
         // Creates a socket instance of the specified type and parent.
-        // The created instance will have the specified parent.
-        // You can also call 'ZMQSocket::setParent()' method to change
-        // ownership later on, but then you need to make sure the socket
-        // instance is deleted before its context. Otherwise, you might
-        // encounter blocking behavior.
-        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_);
+        // The created instance will have the specified parent
+        // (as usual you can also call 'ZMQSocket::setParent()' method to change
+        // ownership later on). Make sure, however, that the socket's parent
+        // belongs to the same thread as the socket instance itself (as it is required
+        // by Qt). Otherwise, you will encounter strange errors.
+        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_ = 0);
 
         // Start watching for incoming messages.
         virtual void start() = 0;

@@ -24,18 +24,17 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef REQREPSERVER_H
-#define REQREPSERVER_H
+#ifndef NZMQT_REQREPCLIENT_H
+#define NZMQT_REQREPCLIENT_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.hpp"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-#include <QTimer>
 #include <QDateTime>
-
-#include "nzmqt/nzmqt.hpp"
+#include <QList>
+#include <QTimer>
 
 
 namespace nzmqt
@@ -44,47 +43,62 @@ namespace nzmqt
 namespace samples
 {
 
-class ReqRepServer : public QObject, public QRunnable
+namespace reqrep
+{
+
+class Requester : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit ReqRepServer(const QString& address, const QString& replyMsg, QObject* parent)
-        : super(parent), address_(address), replyMsg_(replyMsg)
+    explicit Requester(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent = 0)
+        : super(parent)
+        , address_(address), requestMsg_(requestMsg)
+        , socket_(0)
     {
+        socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
+        socket_->setObjectName("Requester.Socket.socket(REQ)");
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveReply(const QList<QByteArray>&)));
     }
 
-    void run()
+signals:
+    void requestSent(const QList<QByteArray>& request);
+    void replyReceived(const QList<QByteArray>& reply);
+
+protected:
+    void startImpl()
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
+        socket_->connectTo(address_);
 
-        socket_ = context->createSocket(ZMQSocket::TYP_REP);
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(requestReceived(const QList<QByteArray>&)));
-
-        socket_->bindTo(address_);
+        QTimer::singleShot(1000, this, SLOT(sendRequest()));
     }
 
 protected slots:
-    void requestReceived(const QList<QByteArray>& request)
+    void sendRequest()
     {
         static quint64 counter = 0;
 
-        qDebug() << "ReqRepServer::requestReceived> " << request;
+        QList<QByteArray> request;
+        request += QString("REQUEST[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
+        request += requestMsg_.toLocal8Bit();
+        qDebug() << "Requester::sendRequest> " << request;
+        socket_->sendMessage(request);
+        emit requestSent(request);
+    }
 
-        QList<QByteArray> reply;
-        reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
-        reply += replyMsg_.toLocal8Bit();
-        reply += request; // We also append original request.
-        qDebug() << "ReqRepServer::sendReply> " << reply;
-        socket_->sendMessage(reply);
+    void receiveReply(const QList<QByteArray>& reply)
+    {
+        qDebug() << "Requester::replyReceived> " << reply;
+        emit replyReceived(reply);
+
+        // Start timer again in order to trigger the next sendRequest() call.
+        QTimer::singleShot(1000, this, SLOT(sendRequest()));
     }
 
 private:
     QString address_;
-    QString replyMsg_;
+    QString requestMsg_;
 
     ZMQSocket* socket_;
 };
@@ -93,4 +107,6 @@ private:
 
 }
 
-#endif // REQREPSERVER_H
+}
+
+#endif // NZMQT_REQREPCLIENT_H

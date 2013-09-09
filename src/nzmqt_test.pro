@@ -24,12 +24,11 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Johann Duscher.
 
-
-QT       += core
+QT       += testlib
 
 QT       -= gui
 
-TARGET = nzmqt
+TARGET = nzmqt_test
 VERSION = 2.2.1
 DESTDIR = $$_PRO_FILE_PWD_/../bin
 CONFIG   += console
@@ -38,22 +37,22 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 DEFINES += \
-#    NZMQT_LIB
+#    NZMQT_LIB \
+    SRCDIR=\\\"$$PWD/\\\"
 
 SOURCES += \
-    main.cpp
+    test/nzmqt_test.cpp
 
 HEADERS += \
     ../include/nzmqt/nzmqt.hpp \
     common/SampleBase.hpp \
-    pubsub/Subscriber.hpp \
     pubsub/Publisher.hpp \
+    pubsub/Subscriber.hpp \
     pushpull/Sink.hpp \
-    pushpull/Worker.hpp \
     pushpull/Ventilator.hpp \
-    reqrep/Requester.hpp \
+    pushpull/Worker.hpp \
     reqrep/Replier.hpp \
-    NzmqtApp.h
+    reqrep/Requester.hpp
 
 LIBS += -lzmq
 

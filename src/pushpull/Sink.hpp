@@ -24,18 +24,16 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUSHPULLSINK_H
-#define PUSHPULLSINK_H
+#ifndef NZMQT_PUSHPULLSINK_H
+#define NZMQT_PUSHPULLSINK_H
 
-#include <QObject>
-#include <QCoreApplication>
-#include <QTime>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.hpp"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-
-#include "nzmqt/nzmqt.hpp"
+#include <QList>
+#include <QTime>
 
 
 namespace nzmqt
@@ -44,24 +42,33 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullSink : public QObject, public QRunnable
+namespace pushpull
+{
+
+class Sink : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit PushPullSink(const QString& sinkAddress, QObject *parent)
-        : super(parent), sinkAddress_(sinkAddress), numberOfWorkItems_(-1)
+    explicit Sink(ZMQContext& context, const QString& sinkAddress, QObject *parent = 0)
+        : super(parent)
+        , sinkAddress_(sinkAddress)
+        , sink_(0)
+        , numberOfWorkItems_(-1)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PULL);
+        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        sink_->setObjectName("Sink.Socket.sink(PULL)");
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 
-    void run()
+signals:
+    void batchStarted(int numberOfWorkItems);
+    void workItemResultReceived();
+    void batchCompleted();
+
+protected:
+    void startImpl()
     {
         sink_->bindTo(sinkAddress_);
     }
@@ -75,6 +82,7 @@ protected slots:
             numberOfWorkItems_ = message[0].toUInt();
             qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
             stopWatch_.start();
+            batchStarted(numberOfWorkItems_);
 
             if (numberOfWorkItems_)
                 return;
@@ -88,6 +96,7 @@ protected slots:
                 qDebug() << ".";
 
             --numberOfWorkItems_;
+            emit workItemResultReceived();
         }
 
         if (!numberOfWorkItems_)
@@ -95,13 +104,14 @@ protected slots:
             int msec = stopWatch_.elapsed();
             qDebug() << "FINISHED all task in " << msec << "msec";
             numberOfWorkItems_ = -1;
+            emit batchCompleted();
         }
     }
 
 private:
     QString sinkAddress_;
-
     ZMQSocket* sink_;
+
     int numberOfWorkItems_;
     QTime stopWatch_;
 };
@@ -110,4 +120,6 @@ private:
 
 }
 
-#endif // PUSHPULLSINK_H
+}
+
+#endif // NZMQT_PUSHPULLSINK_H

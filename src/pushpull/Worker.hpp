@@ -24,19 +24,15 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUSHPULLWORKER_H
-#define PUSHPULLWORKER_H
+#ifndef NZMQT_PUSHPULLWORKER_H
+#define NZMQT_PUSHPULLWORKER_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.hpp"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-#include <QTimer>
-
-#include "nzmqt/nzmqt.hpp"
-
-#include "common/Tools.h" // For sleep() function.
+#include <QList>
 
 
 namespace nzmqt
@@ -45,35 +41,44 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullWorker : public QObject, public QRunnable
+namespace pushpull
+{
+
+class Worker : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit PushPullWorker(const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
+    explicit Worker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent = 0)
+        : super(parent)
+        , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
+        , ventilator_(0), sink_(0)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
+        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+        sink_->setObjectName("Worker.Socket.sink(PUSH)");
 
-        ventilator_ = context->createSocket(ZMQSocket::TYP_PULL);
-        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
+        ventilator_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        ventilator_->setObjectName("Worker.Socket.ventilator(PULL)");
+        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveWorkItem(const QList<QByteArray>&)));
     }
 
-    void run()
+signals:
+    void workItemReceived(quint32 workload);
+    void workItemResultSent();
+
+protected:
+    void startImpl()
     {
         sink_->connectTo(sinkAddress_);
         ventilator_->connectTo(ventilatorAddress_);
     }
 
 protected slots:
-    void workAvailable(const QList<QByteArray>& message)
+    void receiveWorkItem(const QList<QByteArray>& message)
     {
         quint32 work = QString(message[0]).toUInt();
+        emit workItemReceived(work);
 
         // Do the work ;-)
         qDebug() << "snore" << work << "msec";
@@ -81,6 +86,7 @@ protected slots:
 
         // Send results to sink.
         sink_->sendMessage("");
+        emit workItemResultSent();
     }
 
 private:
@@ -95,4 +101,6 @@ private:
 
 }
 
-#endif // PUSHPULLWORKER_H
+}
+
+#endif // NZMQT_PUSHPULLWORKER_H

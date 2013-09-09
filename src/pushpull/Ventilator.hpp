@@ -24,20 +24,17 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef PUSHPULLVENTILATOR_H
-#define PUSHPULLVENTILATOR_H
+#ifndef NZMQT_PUSHPULLVENTILATOR_H
+#define NZMQT_PUSHPULLVENTILATOR_H
 
-#include <QCoreApplication>
-#include <QObject>
-#include <QRunnable>
-#include <QDebug>
-#include <QList>
+#include "common/SampleBase.hpp"
+
+#include <nzmqt/nzmqt.hpp>
+
 #include <QByteArray>
-#include <QTimer>
 #include <QDateTime>
-#include <QTextStream>
-
-#include "nzmqt/nzmqt.hpp"
+#include <QList>
+#include <QTimer>
 
 
 namespace nzmqt
@@ -46,40 +43,59 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullVentilator : public QObject, public QRunnable
+namespace pushpull
+{
+
+class Ventilator : public SampleBase
 {
     Q_OBJECT
-
-    typedef QObject super;
+    typedef SampleBase super;
 
 public:
-    explicit PushPullVentilator(const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent)
-        : super(parent), ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
+    explicit Ventilator(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent = 0)
+        : super(parent)
+        , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
+        , ventilator_(0), sink_(0)
     {
-        ZMQContext* context = createDefaultContext(this);
-        context->start();
+        ventilator_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+        ventilator_->setObjectName("Ventilator.Socket.ventilator(PUSH)");
 
-        ventilator_ = context->createSocket(ZMQSocket::TYP_PUSH);
-
-        sink_ = context->createSocket(ZMQSocket::TYP_PUSH);
+        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+        sink_->setObjectName("Ventilator.Socket.sink(PUSH)");
     }
 
-    void run()
+    int numberOfWorkItems() const
+    {
+        return numberOfWorkItems_;
+    }
+
+    int maxWorkLoad() const
+    {
+        return 100;
+    }
+
+signals:
+    void batchStarted(int);
+    void workItemSent(quint32 workload);
+
+protected:
+    void startImpl()
     {
         ventilator_->bindTo(ventilatorAddress_);
         sink_->connectTo(sinkAddress_);
 
-        // Wait for user start.
+        // Start batch after some period of time needed to setup workers.
+        QTimer::singleShot(1000, this, SLOT(runBatch()));
+    }
 
-        QTextStream stream(stdin);
-        qDebug() << "Available work items:" << numberOfWorkItems_;
-        qDebug() << "Press ENTER if workers are ready!";
-        stream.readLine();
-
+protected slots:
+    void runBatch()
+    {
         // The first message tells the sink how much work it needs to do
         // and at the same time signals start of batch.
 
-        sink_->sendMessage(QString::number(numberOfWorkItems_).toLocal8Bit());
+        sink_->sendMessage(QString::number(numberOfWorkItems()).toLocal8Bit());
+        emit batchStarted(numberOfWorkItems());
 
         // Initialize random number generator.
 
@@ -87,19 +103,21 @@ public:
 
         // Send work items.
 
-        int totalCost = 0; // Total expected cost in msecs
+        int totalExpectedCost = 0; // Total expected cost in msecs
 
-        for (quint32 workItem = 0; workItem < numberOfWorkItems_; workItem++) {
+        for (int workItem = 0; workItem < numberOfWorkItems(); workItem++) {
             // Random workload from 1 to 100msecs
-            quint32 workload = qrand() % 100 + 1;;
+            int workload = qrand() % maxWorkLoad() + 1;
             // Update toal cost.
-            totalCost += workload;
+            totalExpectedCost += workload;
             // Push workload.
             ventilator_->sendMessage(QString::number(workload).toLocal8Bit());
+            emit workItemSent(workload);
         }
 
-        qDebug() << "Total expected cost: " << totalCost << " msec";
-        QCoreApplication::instance()->quit();
+        qDebug() << "Total expected cost: " << totalExpectedCost << " msec";
+
+        QTimer::singleShot(0, this, SLOT(stop()));
     }
 
 private:
@@ -115,4 +133,6 @@ private:
 
 }
 
-#endif // PUSHPULLVENTILATOR_H
+}
+
+#endif // NZMQT_PUSHPULLVENTILATOR_H

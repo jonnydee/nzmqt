@@ -106,7 +106,19 @@ NZMQT_INLINE ZMQSocket::ZMQSocket(ZMQContext* context_, Type type_)
 
 NZMQT_INLINE ZMQSocket::~ZMQSocket()
 {
-    m_context->unregisterSocket(this);
+//    qDebug() << Q_FUNC_INFO << "Context:" << m_context;
+    close();
+}
+
+NZMQT_INLINE void ZMQSocket::close()
+{
+//    qDebug() << Q_FUNC_INFO << "Context:" << m_context;
+    if (m_context)
+    {
+        m_context->unregisterSocket(this);
+        m_context = 0;
+    }
+    zmqsuper::close();
 }
 
 NZMQT_INLINE void ZMQSocket::setOption(Option optName_, const void *optionVal_, size_t optionValLen_)
@@ -337,14 +349,15 @@ NZMQT_INLINE ZMQContext::ZMQContext(QObject* parent_, int io_threads_)
 
 NZMQT_INLINE ZMQContext::~ZMQContext()
 {
-    QObjectList children_ = children();
-    foreach (QObject* child, children_)
-        delete child;
-}
-
-NZMQT_INLINE ZMQSocket* ZMQContext::createSocket(ZMQSocket::Type type_)
-{
-    return createSocket(type_, this);
+//    qDebug() << Q_FUNC_INFO << "Sockets:" << m_sockets;
+    foreach (ZMQSocket* socket, m_sockets)
+    {
+        socket->m_context = 0;
+        // As stated by 0MQ, close() must ONLY be called from the thread
+        // owning the socket. So we use 'invokeMethod' which (hopefully)
+        // results in a 'close' call from within the socket's thread.
+        QMetaObject::invokeMethod(socket, "close");
+    }
 }
 
 NZMQT_INLINE ZMQSocket* ZMQContext::createSocket(ZMQSocket::Type type_, QObject* parent_)

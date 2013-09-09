@@ -24,15 +24,14 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef TOOLS_H
-#define TOOLS_H
+#ifndef NZMQT_SAMPLEBASE_H
+#define NZMQT_SAMPLEBASE_H
 
-// For sleep.
-#ifdef Q_OS_WIN
- #include <windows.h>
-#else
- #include <time.h>
-#endif
+#include "nzmqt/nzmqt.hpp"
+
+#include <QDebug>
+#include <QEventLoop>
+#include <QThread>
 
 
 namespace nzmqt
@@ -41,18 +40,68 @@ namespace nzmqt
 namespace samples
 {
 
-inline void sleep(int msec)
+class SampleBase : public QObject
 {
-#ifdef Q_OS_WIN
-    Sleep(uint(msec));
-#else
-    struct timespec ts = { msec / 1000, (msec % 1000) * 1000 * 1000 };
-    nanosleep(&ts, NULL);
-#endif
+    Q_OBJECT
+    typedef QObject super;
+
+signals:
+    void finished();
+    void failure(const QString& what);
+
+public slots:
+    void start();
+    void stop();
+
+protected:
+    SampleBase(QObject* parent);
+
+    virtual void startImpl() = 0;
+
+    static void sleep(unsigned long msecs);
+
+private:
+    class ThreadTools : private QThread
+    {
+    public:
+        using QThread::msleep;
+
+    private:
+        ThreadTools() {}
+    };
+};
+
+inline SampleBase::SampleBase(QObject* parent)
+    : super(parent)
+{
+}
+
+inline void SampleBase::start()
+{
+    try
+    {
+        startImpl();
+    }
+    catch (const nzmqt::ZMQException& ex)
+    {
+        qWarning() << Q_FUNC_INFO << "Exception:" << ex.what();
+        emit failure(ex.what());
+        emit finished();
+    }
+}
+
+inline void SampleBase::stop()
+{
+    emit finished();
+}
+
+inline void SampleBase::sleep(unsigned long msecs)
+{
+    ThreadTools::msleep(msecs);
 }
 
 }
 
 }
 
-#endif // TOOLS_H
+#endif // NZMQT_SAMPLEBASE_H
