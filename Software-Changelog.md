@@ -13,7 +13,7 @@ Release 3.2.0-dev
 API Changes
 -----------
 * Method 'ZMQContext::createSocket()' does not implicitly set the 'ZMQContext' instance as parent of the created instance anymore. So if you don't pass a pointer to a parent QObject (NULL pointer) the socket instance won't have a parent set. Code doing this will **leak memory** now! Please make sure you delete the socket instance yourself in such cases.
-* Method 'ZMQContext::close()' now is a slot.
+* Method 'ZMQSocket::close()' now is a slot.
 
 
 Release 2.2.0
