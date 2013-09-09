@@ -48,15 +48,21 @@ class PushPullSink : public SampleBase
     typedef SampleBase super;
 
 public:
-    explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent)
+    explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent = 0)
         : super(parent)
         , sinkAddress_(sinkAddress)
         , sink_(0)
         , numberOfWorkItems_(-1)
     {
         sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        sink_->setObjectName("PushPullSink.Socket.sink(PULL)");
         connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
+
+signals:
+    void batchStarted(int numberOfWorkItems);
+    void workItemResultReceived();
+    void batchCompleted();
 
 protected:
     void startImpl()
@@ -73,6 +79,7 @@ protected slots:
             numberOfWorkItems_ = message[0].toUInt();
             qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
             stopWatch_.start();
+            batchStarted(numberOfWorkItems_);
 
             if (numberOfWorkItems_)
                 return;
@@ -86,6 +93,7 @@ protected slots:
                 qDebug() << ".";
 
             --numberOfWorkItems_;
+            emit workItemResultReceived();
         }
 
         if (!numberOfWorkItems_)
@@ -93,6 +101,7 @@ protected slots:
             int msec = stopWatch_.elapsed();
             qDebug() << "FINISHED all task in " << msec << "msec";
             numberOfWorkItems_ = -1;
+            emit batchCompleted();
         }
     }
 

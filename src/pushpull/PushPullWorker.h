@@ -47,16 +47,22 @@ class PushPullWorker : public SampleBase
     typedef SampleBase super;
 
 public:
-    explicit PushPullWorker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent)
+    explicit PushPullWorker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent = 0)
         : super(parent)
         , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
         , ventilator_(0), sink_(0)
     {
         sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+        sink_->setObjectName("PushPullWorker.Socket.sink(PUSH)");
 
         ventilator_ = context.createSocket(ZMQSocket::TYP_PULL, this);
-        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(workAvailable(const QList<QByteArray>&)));
+        ventilator_->setObjectName("PushPullWorker.Socket.ventilator(PULL)");
+        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveWorkItem(const QList<QByteArray>&)));
     }
+
+signals:
+    void workItemReceived(quint32 workload);
+    void workItemResultSent();
 
 protected:
     void startImpl()
@@ -66,9 +72,10 @@ protected:
     }
 
 protected slots:
-    void workAvailable(const QList<QByteArray>& message)
+    void receiveWorkItem(const QList<QByteArray>& message)
     {
         quint32 work = QString(message[0]).toUInt();
+        emit workItemReceived(work);
 
         // Do the work ;-)
         qDebug() << "snore" << work << "msec";
@@ -76,6 +83,7 @@ protected slots:
 
         // Send results to sink.
         sink_->sendMessage("");
+        emit workItemResultSent();
     }
 
 private:

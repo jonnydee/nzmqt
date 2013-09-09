@@ -143,6 +143,12 @@ protected slots:
                 QString sinkAddress = args[3];
                 quint32 numberOfWorkItems = args[4].toUInt();
                 commandImpl = new PushPullVentilator(*context, ventilatorAddress, sinkAddress, numberOfWorkItems, this);
+
+                // Wait for user start.
+                QTextStream outStream(stdout);
+                outStream << "Press ENTER if workers and sink are ready!" << ::flush;
+                QTextStream inStream(stdin);
+                inStream.readLine();
             }
             else if ("pushpull-worker" == command)
             {
