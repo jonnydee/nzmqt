@@ -147,6 +147,7 @@ void NzmqtTest::testReqRep()
         // Create replier.
         samples::reqrep::Replier* replier = new samples::reqrep::Replier(*context, "inproc://reqrep", "world");
         QSignalSpy spyReplierRequestReceived(replier, SIGNAL(requestReceived(const QList<QByteArray>&)));
+        QSignalSpy spyReplierReplySent(replier, SIGNAL(replySent(const QList<QByteArray>&)));
         QSignalSpy spyReplierFailure(replier, SIGNAL(failure(const QString&)));
         QSignalSpy spyReplierFinished(replier, SIGNAL(finished()));
         // Create replier execution thread.
@@ -156,6 +157,7 @@ void NzmqtTest::testReqRep()
         // Create requester.
         samples::reqrep::Requester* requester = new samples::reqrep::Requester(*context, "inproc://reqrep", "hello");
         QSignalSpy spyRequesterRequestSent(requester, SIGNAL(requestSent(const QList<QByteArray>&)));
+        QSignalSpy spyRequesterReplyReceived(requester, SIGNAL(replyReceived(const QList<QByteArray>&)));
         QSignalSpy spyRequesterFailure(requester, SIGNAL(failure(const QString&)));
         QSignalSpy spyRequesterFinished(requester, SIGNAL(finished()));
         // Create requester execution thread.
@@ -187,10 +189,11 @@ void NzmqtTest::testReqRep()
         QCOMPARE(spyReplierFailure.size(), 0);
         QCOMPARE(spyRequesterFailure.size(), 0);
 
-        QVERIFY2(spyReplierRequestReceived.size() > 3, "Server didn't send any/enough pings.");
-        QVERIFY2(spyRequesterRequestSent.size() > 3, "Client didn't receive any/enough pings.");
+        QVERIFY2(spyRequesterRequestSent.size() > 3, "Requester didn't send any/enough requests.");
+        QCOMPARE(spyRequesterReplyReceived.size(), spyRequesterRequestSent.size());
 
         QCOMPARE(spyReplierRequestReceived.size(), spyRequesterRequestSent.size());
+        QCOMPARE(spyReplierReplySent.size(), spyReplierRequestReceived.size());
 
         QCOMPARE(spyReplierFinished.size(), 1);
         QCOMPARE(spyRequesterFinished.size(), 1);
