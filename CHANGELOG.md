@@ -8,6 +8,8 @@ Release 3.2.0-dev
 * Fixed gh-12: warnings with -Wall (and compilation broken if -Werror).
 * Feature gh-13: Support type-safe Qt 5 singals & slots connections.
 * Feature gh-14: Additionally allow to link nzmqt 3.2.0 as static or shared lib.
+* Task gh-16: Implement unit tests.
+* Feature gh-17: Allow to compile nzmqt as static/shared library.
 
 Release 2.2.0
 -------------
