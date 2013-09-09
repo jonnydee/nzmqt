@@ -34,9 +34,9 @@
 #include <QByteArray>
 #include <QFlag>
 #include <QList>
+#include <QMetaType>
 #include <QMutex>
 #include <QObject>
-#include <QMetaType>
 #include <QRunnable>
 #include <QVector>
 
