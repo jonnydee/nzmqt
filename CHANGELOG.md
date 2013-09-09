@@ -7,7 +7,6 @@ Release 2.2.1-dev
 * Feature gh-13: Support type-safe Qt 5 singals & slots connections.
 * Feature gh-15: Additionally allow to link nzmqt 2.2.1 as static or shared lib.
 * Task gh-16: Implement unit tests.
-* Feature gh-17: Allow to compile nzmqt as static/shared library.
 
 Release 2.2.0
 -------------
