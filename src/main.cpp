@@ -26,7 +26,7 @@
 
 #include <QtCore/QCoreApplication>
 
-#include "NzmqtApp.h"
+#include "NzmqtApp.hpp"
 
 
 int main(int argc, char *argv[])

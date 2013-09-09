@@ -53,7 +53,7 @@ HEADERS += \
     pushpull/Ventilator.hpp \
     reqrep/Requester.hpp \
     reqrep/Replier.hpp \
-    NzmqtApp.h
+    NzmqtApp.hpp
 
 LIBS += -lzmq
 
