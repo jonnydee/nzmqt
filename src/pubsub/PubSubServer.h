@@ -55,6 +55,7 @@ public:
         , socket_(0)
     {
         socket_ = context.createSocket(ZMQSocket::TYP_PUB, this);
+        socket_->setObjectName("PubSubServer.Socket.socket(PUB)");
     }
 
 signals:

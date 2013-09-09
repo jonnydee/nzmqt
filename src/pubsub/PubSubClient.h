@@ -53,6 +53,7 @@ public:
         , socket_(0)
     {
         socket_ = context.createSocket(ZMQSocket::TYP_SUB, this);
+        socket_->setObjectName("PubSubClient.Socket.socket(SUB)");
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 
