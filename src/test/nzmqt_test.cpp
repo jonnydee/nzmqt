@@ -28,6 +28,9 @@
 #include "pubsub/PubSubServer.h"
 #include "reqrep/ReqRepClient.h"
 #include "reqrep/ReqRepServer.h"
+#include "pushpull/PushPullVentilator.h"
+#include "pushpull/PushPullWorker.h"
+#include "pushpull/PushPullSink.h"
 
 #include <QCoreApplication>
 #include <QString>
@@ -49,6 +52,7 @@ protected:
 private slots:
     void testPubSub();
     void testReqRep();
+    void testPushPull();
 };
 
 NzmqtTest::NzmqtTest()
@@ -193,6 +197,92 @@ void NzmqtTest::testReqRep()
 
         QCOMPARE(spyServerThreadFinished.size(), 1);
         QCOMPARE(spyClientThreadFinished.size(), 1);
+    }
+    catch (std::exception& ex)
+    {
+        QFAIL(ex.what());
+    }
+}
+
+void NzmqtTest::testPushPull()
+{
+    try {
+        QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
+
+        // Create ventilator.
+        samples::PushPullVentilator* ventilator = new samples::PushPullVentilator(*context, "tcp://127.0.0.1:5557", "tcp://127.0.0.1:5558", 200);
+        QSignalSpy spyVentilatorBatchStarted(ventilator, SIGNAL(batchStarted(int)));
+        QSignalSpy spyVentilatorWorkItemSent(ventilator, SIGNAL(workItemSent(quint32)));
+        QSignalSpy spyVentilatorFailure(ventilator, SIGNAL(failure(const QString&)));
+        QSignalSpy spyVentilatorFinished(ventilator, SIGNAL(finished()));
+        // Create ventilator execution thread.
+        QThread* ventilatorThread = makeExecutionThread(*ventilator);
+        QSignalSpy spyVentilatorThreadFinished(ventilatorThread, SIGNAL(finished()));
+
+        // Create worker.
+        samples::PushPullWorker* worker = new samples::PushPullWorker(*context, "tcp://127.0.0.1:5557", "tcp://127.0.0.1:5558");
+        QSignalSpy spyWorkerWorkItemReceived(worker, SIGNAL(workItemReceived(quint32)));
+        QSignalSpy spyWorkerWorkItemResultSent(worker, SIGNAL(workItemResultSent()));
+        QSignalSpy spyWorkerFailure(worker, SIGNAL(failure(const QString&)));
+        QSignalSpy spyWorkerFinished(worker, SIGNAL(finished()));
+        // Create worker execution thread.
+        QThread* workerThread = makeExecutionThread(*worker);
+        QSignalSpy spyWorkerThreadFinished(workerThread, SIGNAL(finished()));
+
+        // Create sink.
+        samples::PushPullSink* sink = new samples::PushPullSink(*context, "tcp://127.0.0.1:5558");
+        QSignalSpy spySinkBatchStarted(sink, SIGNAL(batchStarted(int)));
+        QSignalSpy spySinkWorkItemResultReceived(sink, SIGNAL(workItemResultReceived()));
+        QSignalSpy spySinkBatchCompleted(sink, SIGNAL(batchCompleted()));
+        QSignalSpy spySinkFailure(sink, SIGNAL(failure(const QString&)));
+        QSignalSpy spySinkFinished(sink, SIGNAL(finished()));
+        // Create sink execution thread.
+        QThread* sinkThread = makeExecutionThread(*sink);
+        QSignalSpy spySinkThreadFinished(sinkThread, SIGNAL(finished()));
+
+        //
+        // START TEST
+        //
+
+        const int numberOfWorkItems = ventilator->numberOfWorkItems();
+        const int maxTotalExpectedCost = numberOfWorkItems*ventilator->maxWorkLoad();
+        QTimer::singleShot(maxTotalExpectedCost + 2000, ventilator, SLOT(stop()));
+        QTimer::singleShot(maxTotalExpectedCost + 2000, worker, SLOT(stop()));
+        QTimer::singleShot(maxTotalExpectedCost + 2000, sink, SLOT(stop()));
+
+        context->start();
+
+        sinkThread->start();
+        QTest::qWait(500);
+        ventilatorThread->start();
+        QTest::qWait(500);
+        workerThread->start();
+
+        QTest::qWait(maxTotalExpectedCost + 2500);
+
+        //
+        // CHECK POSTCONDITIONS
+        //
+
+        QCOMPARE(spyVentilatorFailure.size(), 0);
+        QCOMPARE(spyWorkerFailure.size(), 0);
+        QCOMPARE(spySinkFailure.size(), 0);
+
+        QCOMPARE(spyVentilatorBatchStarted.size(), 1);
+        QCOMPARE(spyVentilatorWorkItemSent.size(), numberOfWorkItems);
+        QCOMPARE(spyVentilatorFinished.size(), 1);
+        QCOMPARE(spyVentilatorThreadFinished.size(), 1);
+
+        QCOMPARE(spyWorkerWorkItemReceived.size(), numberOfWorkItems);
+        QCOMPARE(spyWorkerWorkItemResultSent.size(), numberOfWorkItems);
+        QCOMPARE(spyWorkerFinished.size(), 1);
+        QCOMPARE(spyWorkerThreadFinished.size(), 1);
+
+        QCOMPARE(spySinkBatchStarted.size(), 1);
+        QCOMPARE(spySinkWorkItemResultReceived.size(), numberOfWorkItems);
+        QCOMPARE(spySinkBatchCompleted.size(), 1);
+        QCOMPARE(spySinkFinished.size(), 1);
+        QCOMPARE(spySinkThreadFinished.size(), 1);
     }
     catch (std::exception& ex)
     {
