@@ -27,7 +27,7 @@
 #ifndef NZMQT_PUSHPULLVENTILATOR_H
 #define NZMQT_PUSHPULLVENTILATOR_H
 
-#include "common/SampleBase.h"
+#include "common/SampleBase.hpp"
 
 #include <nzmqt/nzmqt.hpp>
 

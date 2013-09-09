@@ -24,14 +24,15 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_PUSHPULLWORKER_H
-#define NZMQT_PUSHPULLWORKER_H
+#ifndef NZMQT_REQREPSERVER_H
+#define NZMQT_REQREPSERVER_H
 
-#include "common/SampleBase.h"
+#include "common/SampleBase.hpp"
 
 #include <nzmqt/nzmqt.hpp>
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QList>
 
 
@@ -41,60 +42,57 @@ namespace nzmqt
 namespace samples
 {
 
-namespace pushpull
+namespace reqrep
 {
 
-class Worker : public SampleBase
+class Replier : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit Worker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent = 0)
+    explicit Replier(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent = 0)
         : super(parent)
-        , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
-        , ventilator_(0), sink_(0)
+        , address_(address), replyMsg_(replyMsg)
+        , socket_(0)
     {
-        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
-        sink_->setObjectName("Worker.Socket.sink(PUSH)");
-
-        ventilator_ = context.createSocket(ZMQSocket::TYP_PULL, this);
-        ventilator_->setObjectName("Worker.Socket.ventilator(PULL)");
-        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveWorkItem(const QList<QByteArray>&)));
+        socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
+        socket_->setObjectName("Replier.Socket.socket(REP)");
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveRequest(const QList<QByteArray>&)));
     }
 
 signals:
-    void workItemReceived(quint32 workload);
-    void workItemResultSent();
+    void requestReceived(const QList<QByteArray>& request);
+    void replySent(const QList<QByteArray>& request);
 
 protected:
     void startImpl()
     {
-        sink_->connectTo(sinkAddress_);
-        ventilator_->connectTo(ventilatorAddress_);
+        socket_->bindTo(address_);
     }
 
 protected slots:
-    void receiveWorkItem(const QList<QByteArray>& message)
+    void receiveRequest(const QList<QByteArray>& request)
     {
-        quint32 work = QString(message[0]).toUInt();
-        emit workItemReceived(work);
+        static quint64 counter = 0;
 
-        // Do the work ;-)
-        qDebug() << "snore" << work << "msec";
-        sleep(work);
+        qDebug() << "Replier::requestReceived> " << request;
+        emit requestReceived(request);
 
-        // Send results to sink.
-        sink_->sendMessage("");
-        emit workItemResultSent();
+        QList<QByteArray> reply;
+        reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
+        reply += replyMsg_.toLocal8Bit();
+        reply += request; // We also append original request.
+        qDebug() << "Replier::sendReply> " << reply;
+        socket_->sendMessage(reply);
+        emit replySent(reply);
     }
 
 private:
-    QString ventilatorAddress_;
-    QString sinkAddress_;
+    QString address_;
+    QString replyMsg_;
 
-    ZMQSocket* ventilator_;
-    ZMQSocket* sink_;
+    ZMQSocket* socket_;
 };
 
 }
@@ -103,4 +101,4 @@ private:
 
 }
 
-#endif // NZMQT_PUSHPULLWORKER_H
+#endif // NZMQT_REQREPSERVER_H

@@ -24,16 +24,17 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_PUSHPULLSINK_H
-#define NZMQT_PUSHPULLSINK_H
+#ifndef NZMQT_REQREPCLIENT_H
+#define NZMQT_REQREPCLIENT_H
 
-#include "common/SampleBase.h"
+#include "common/SampleBase.hpp"
 
 #include <nzmqt/nzmqt.hpp>
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QList>
-#include <QTime>
+#include <QTimer>
 
 
 namespace nzmqt
@@ -42,78 +43,64 @@ namespace nzmqt
 namespace samples
 {
 
-namespace pushpull
+namespace reqrep
 {
 
-class Sink : public SampleBase
+class Requester : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit Sink(ZMQContext& context, const QString& sinkAddress, QObject *parent = 0)
+    explicit Requester(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent = 0)
         : super(parent)
-        , sinkAddress_(sinkAddress)
-        , sink_(0)
-        , numberOfWorkItems_(-1)
+        , address_(address), requestMsg_(requestMsg)
+        , socket_(0)
     {
-        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
-        sink_->setObjectName("Sink.Socket.sink(PULL)");
-        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
+        socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
+        socket_->setObjectName("Requester.Socket.socket(REQ)");
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveReply(const QList<QByteArray>&)));
     }
 
 signals:
-    void batchStarted(int numberOfWorkItems);
-    void workItemResultReceived();
-    void batchCompleted();
+    void requestSent(const QList<QByteArray>& request);
+    void replyReceived(const QList<QByteArray>& reply);
 
 protected:
     void startImpl()
     {
-        sink_->bindTo(sinkAddress_);
+        socket_->connectTo(address_);
+
+        QTimer::singleShot(1000, this, SLOT(sendRequest()));
     }
 
 protected slots:
-    void batchEvent(const QList<QByteArray>& message)
+    void sendRequest()
     {
-        if (numberOfWorkItems_ < 0)
-        {
-            // 'message' is a batch start message.
-            numberOfWorkItems_ = message[0].toUInt();
-            qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
-            stopWatch_.start();
-            batchStarted(numberOfWorkItems_);
+        static quint64 counter = 0;
 
-            if (numberOfWorkItems_)
-                return;
-        }
+        QList<QByteArray> request;
+        request += QString("REQUEST[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
+        request += requestMsg_.toLocal8Bit();
+        qDebug() << "Requester::sendRequest> " << request;
+        socket_->sendMessage(request);
+        emit requestSent(request);
+    }
 
-        if (numberOfWorkItems_ > 0)
-        {
-            if (numberOfWorkItems_ % 10 == 0)
-                qDebug() << numberOfWorkItems_;
-            else
-                qDebug() << ".";
+    void receiveReply(const QList<QByteArray>& reply)
+    {
+        qDebug() << "Requester::replyReceived> " << reply;
+        emit replyReceived(reply);
 
-            --numberOfWorkItems_;
-            emit workItemResultReceived();
-        }
-
-        if (!numberOfWorkItems_)
-        {
-            int msec = stopWatch_.elapsed();
-            qDebug() << "FINISHED all task in " << msec << "msec";
-            numberOfWorkItems_ = -1;
-            emit batchCompleted();
-        }
+        // Start timer again in order to trigger the next sendRequest() call.
+        QTimer::singleShot(1000, this, SLOT(sendRequest()));
     }
 
 private:
-    QString sinkAddress_;
-    ZMQSocket* sink_;
+    QString address_;
+    QString requestMsg_;
 
-    int numberOfWorkItems_;
-    QTime stopWatch_;
+    ZMQSocket* socket_;
 };
 
 }
@@ -122,4 +109,4 @@ private:
 
 }
 
-#endif // NZMQT_PUSHPULLSINK_H
+#endif // NZMQT_REQREPCLIENT_H

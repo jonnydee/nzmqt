@@ -24,13 +24,13 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#include "pubsub/Publisher.h"
-#include "pubsub/Subscriber.h"
-#include "reqrep/Requester.h"
-#include "reqrep/Replier.h"
-#include "pushpull/Ventilator.h"
-#include "pushpull/Worker.h"
-#include "pushpull/Sink.h"
+#include "pubsub/Publisher.hpp"
+#include "pubsub/Subscriber.hpp"
+#include "reqrep/Requester.hpp"
+#include "reqrep/Replier.hpp"
+#include "pushpull/Ventilator.hpp"
+#include "pushpull/Worker.hpp"
+#include "pushpull/Sink.hpp"
 
 #include <QCoreApplication>
 #include <QString>

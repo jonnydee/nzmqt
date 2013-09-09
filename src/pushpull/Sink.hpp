@@ -24,17 +24,16 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_REQREPCLIENT_H
-#define NZMQT_REQREPCLIENT_H
+#ifndef NZMQT_PUSHPULLSINK_H
+#define NZMQT_PUSHPULLSINK_H
 
-#include "common/SampleBase.h"
+#include "common/SampleBase.hpp"
 
 #include <nzmqt/nzmqt.hpp>
 
 #include <QByteArray>
-#include <QDateTime>
 #include <QList>
-#include <QTimer>
+#include <QTime>
 
 
 namespace nzmqt
@@ -43,64 +42,78 @@ namespace nzmqt
 namespace samples
 {
 
-namespace reqrep
+namespace pushpull
 {
 
-class Requester : public SampleBase
+class Sink : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit Requester(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent = 0)
+    explicit Sink(ZMQContext& context, const QString& sinkAddress, QObject *parent = 0)
         : super(parent)
-        , address_(address), requestMsg_(requestMsg)
-        , socket_(0)
+        , sinkAddress_(sinkAddress)
+        , sink_(0)
+        , numberOfWorkItems_(-1)
     {
-        socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
-        socket_->setObjectName("Requester.Socket.socket(REQ)");
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveReply(const QList<QByteArray>&)));
+        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        sink_->setObjectName("Sink.Socket.sink(PULL)");
+        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 
 signals:
-    void requestSent(const QList<QByteArray>& request);
-    void replyReceived(const QList<QByteArray>& reply);
+    void batchStarted(int numberOfWorkItems);
+    void workItemResultReceived();
+    void batchCompleted();
 
 protected:
     void startImpl()
     {
-        socket_->connectTo(address_);
-
-        QTimer::singleShot(1000, this, SLOT(sendRequest()));
+        sink_->bindTo(sinkAddress_);
     }
 
 protected slots:
-    void sendRequest()
+    void batchEvent(const QList<QByteArray>& message)
     {
-        static quint64 counter = 0;
+        if (numberOfWorkItems_ < 0)
+        {
+            // 'message' is a batch start message.
+            numberOfWorkItems_ = message[0].toUInt();
+            qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
+            stopWatch_.start();
+            batchStarted(numberOfWorkItems_);
 
-        QList<QByteArray> request;
-        request += QString("REQUEST[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
-        request += requestMsg_.toLocal8Bit();
-        qDebug() << "Requester::sendRequest> " << request;
-        socket_->sendMessage(request);
-        emit requestSent(request);
-    }
+            if (numberOfWorkItems_)
+                return;
+        }
 
-    void receiveReply(const QList<QByteArray>& reply)
-    {
-        qDebug() << "Requester::replyReceived> " << reply;
-        emit replyReceived(reply);
+        if (numberOfWorkItems_ > 0)
+        {
+            if (numberOfWorkItems_ % 10 == 0)
+                qDebug() << numberOfWorkItems_;
+            else
+                qDebug() << ".";
 
-        // Start timer again in order to trigger the next sendRequest() call.
-        QTimer::singleShot(1000, this, SLOT(sendRequest()));
+            --numberOfWorkItems_;
+            emit workItemResultReceived();
+        }
+
+        if (!numberOfWorkItems_)
+        {
+            int msec = stopWatch_.elapsed();
+            qDebug() << "FINISHED all task in " << msec << "msec";
+            numberOfWorkItems_ = -1;
+            emit batchCompleted();
+        }
     }
 
 private:
-    QString address_;
-    QString requestMsg_;
+    QString sinkAddress_;
+    ZMQSocket* sink_;
 
-    ZMQSocket* socket_;
+    int numberOfWorkItems_;
+    QTime stopWatch_;
 };
 
 }
@@ -109,4 +122,4 @@ private:
 
 }
 
-#endif // NZMQT_REQREPCLIENT_H
+#endif // NZMQT_PUSHPULLSINK_H

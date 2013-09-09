@@ -45,14 +45,14 @@ SOURCES += \
 
 HEADERS += \
     ../include/nzmqt/nzmqt.hpp \
-    common/SampleBase.h \
-    pubsub/Publisher.h \
-    pubsub/Subscriber.h \
-    reqrep/Requester.h \
-    reqrep/Replier.h \
-    pushpull/Worker.h \
-    pushpull/Ventilator.h \
-    pushpull/Sink.h
+    common/SampleBase.hpp \
+    pubsub/Publisher.hpp \
+    pubsub/Subscriber.hpp \
+    pushpull/Sink.hpp \
+    pushpull/Ventilator.hpp \
+    pushpull/Worker.hpp \
+    reqrep/Replier.hpp \
+    reqrep/Requester.hpp
 
 LIBS += -lzmq
 
