@@ -11,23 +11,23 @@ All samples are compiled into one executable called 'nzmqt'. You can try them ou
 ```
 USAGE: ./nzmqt [-h|--help]                                                                 -- Show this help message.
 
-USAGE: ./nzmqt pubsub-server <address> <topic>                                             -- Start PUB server.
-       ./nzmqt pubsub-client <address> <topic>                                             -- Start SUB client.
+USAGE: ./nzmqt pubsub-publisher <address> <topic>                                          -- Start PUB server.
+       ./nzmqt pubsub-subscriber <address> <topic>                                         -- Start SUB client.
 
-USAGE: ./nzmqt reqrep-server <address> <reply-msg>                                         -- Start REQ server.
-       ./nzmqt reqrep-client <address> <request-msg>                                       -- Start REP client.
+USAGE: ./nzmqt reqrep-replier <address> <reply-msg>                                        -- Start REQ server.
+       ./nzmqt reqrep-requester <address> <request-msg>                                    -- Start REP client.
 
 USAGE: ./nzmqt pushpull-ventilator <ventilator-address> <sink-address> <numberOfWorkItems> -- Start ventilator.
        ./nzmqt pushpull-worker <ventilator-address> <sink-address>                         -- Start a worker.
        ./nzmqt pushpull-sink <sink-address>                                                -- Start sink.
 
 Publish-Subscribe Sample:
-* Server: ./nzmqt pubsub-server tcp://127.0.0.1:1234 ping
-* Client: ./nzmqt pubsub-client tcp://127.0.0.1:1234 ping
+* Server: ./nzmqt pubsub-publisher tcp://127.0.0.1:1234 ping
+* Client: ./nzmqt pubsub-subscriber tcp://127.0.0.1:1234 ping
 
 Request-Reply Sample:
-* Server: ./nzmqt reqrep-server tcp://127.0.0.1:1234 World
-* Client: ./nzmqt reqrep-client tcp://127.0.0.1:1234 Hello
+* Server: ./nzmqt reqrep-replier tcp://127.0.0.1:1234 World
+* Client: ./nzmqt reqrep-requester tcp://127.0.0.1:1234 Hello
 
 Push-Pull Sample:
 * Ventilator:  ./nzmqt pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558 100
