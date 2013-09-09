@@ -54,6 +54,7 @@ public:
         , socket_(0)
     {
         socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
+        socket_->setObjectName("ReqRepServer.Socket.socket(REP)");
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveRequest(const QList<QByteArray>&)));
     }
 
