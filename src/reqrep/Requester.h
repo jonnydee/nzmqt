@@ -43,19 +43,22 @@ namespace nzmqt
 namespace samples
 {
 
-class ReqRepClient : public SampleBase
+namespace reqrep
+{
+
+class Requester : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit ReqRepClient(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent = 0)
+    explicit Requester(ZMQContext& context, const QString& address, const QString& requestMsg, QObject *parent = 0)
         : super(parent)
         , address_(address), requestMsg_(requestMsg)
         , socket_(0)
     {
         socket_ = context.createSocket(ZMQSocket::TYP_REQ, this);
-        socket_->setObjectName("ReqRepClient.Socket.socket(REQ)");
+        socket_->setObjectName("Requester.Socket.socket(REQ)");
         connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveReply(const QList<QByteArray>&)));
     }
 
@@ -79,14 +82,14 @@ protected slots:
         QList<QByteArray> request;
         request += QString("REQUEST[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
         request += requestMsg_.toLocal8Bit();
-        qDebug() << "ReqRepClient::sendRequest> " << request;
+        qDebug() << "Requester::sendRequest> " << request;
         socket_->sendMessage(request);
         emit requestSent(request);
     }
 
     void receiveReply(const QList<QByteArray>& reply)
     {
-        qDebug() << "ReqRepClient::replyReceived> " << reply;
+        qDebug() << "Requester::replyReceived> " << reply;
         emit replyReceived(reply);
 
         // Start timer again in order to trigger the next sendRequest() call.
@@ -99,6 +102,8 @@ private:
 
     ZMQSocket* socket_;
 };
+
+}
 
 }
 

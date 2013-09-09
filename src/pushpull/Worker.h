@@ -24,17 +24,15 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_PUBSUBSERVER_H
-#define NZMQT_PUBSUBSERVER_H
+#ifndef NZMQT_PUSHPULLWORKER_H
+#define NZMQT_PUSHPULLWORKER_H
 
 #include "common/SampleBase.h"
 
 #include <nzmqt/nzmqt.hpp>
 
 #include <QByteArray>
-#include <QDateTime>
 #include <QList>
-#include <QTimer>
 
 
 namespace nzmqt
@@ -43,56 +41,66 @@ namespace nzmqt
 namespace samples
 {
 
-class PubSubServer : public SampleBase
+namespace pushpull
+{
+
+class Worker : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit PubSubServer(ZMQContext& context, const QString& address, const QString& topic, QObject* parent = 0)
+    explicit Worker(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, QObject *parent = 0)
         : super(parent)
-        , address_(address), topic_(topic)
-        , socket_(0)
+        , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress)
+        , ventilator_(0), sink_(0)
     {
-        socket_ = context.createSocket(ZMQSocket::TYP_PUB, this);
-        socket_->setObjectName("PubSubServer.Socket.socket(PUB)");
+        sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
+        sink_->setObjectName("Worker.Socket.sink(PUSH)");
+
+        ventilator_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        ventilator_->setObjectName("Worker.Socket.ventilator(PULL)");
+        connect(ventilator_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveWorkItem(const QList<QByteArray>&)));
     }
 
 signals:
-    void pingSent(const QList<QByteArray>& message);
+    void workItemReceived(quint32 workload);
+    void workItemResultSent();
 
 protected:
     void startImpl()
     {
-        socket_->bindTo(address_);
-
-        QTimer::singleShot(1000, this, SLOT(sendPing()));
+        sink_->connectTo(sinkAddress_);
+        ventilator_->connectTo(ventilatorAddress_);
     }
 
 protected slots:
-    void sendPing()
+    void receiveWorkItem(const QList<QByteArray>& message)
     {
-        static quint64 counter = 0;
+        quint32 work = QString(message[0]).toUInt();
+        emit workItemReceived(work);
 
-        QList< QByteArray > msg;
-        msg += topic_.toLocal8Bit();
-        msg += QString("MSG[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toLocalTime().toString(Qt::ISODate)).toLocal8Bit();
-        socket_->sendMessage(msg);
-        qDebug() << "PubSubServer> " << msg;
-        emit pingSent(msg);
+        // Do the work ;-)
+        qDebug() << "snore" << work << "msec";
+        sleep(work);
 
-        QTimer::singleShot(1000, this, SLOT(sendPing()));
+        // Send results to sink.
+        sink_->sendMessage("");
+        emit workItemResultSent();
     }
 
 private:
-    QString address_;
-    QString topic_;
+    QString ventilatorAddress_;
+    QString sinkAddress_;
 
-    ZMQSocket* socket_;
+    ZMQSocket* ventilator_;
+    ZMQSocket* sink_;
 };
 
 }
 
 }
 
-#endif // NZMQT_PUBSUBSERVER_H
+}
+
+#endif // NZMQT_PUSHPULLWORKER_H

@@ -24,8 +24,8 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_PUSHPULLSINK_H
-#define NZMQT_PUSHPULLSINK_H
+#ifndef NZMQT_PUBSUBCLIENT_H
+#define NZMQT_PUBSUBCLIENT_H
 
 #include "common/SampleBase.h"
 
@@ -33,7 +33,6 @@
 
 #include <QByteArray>
 #include <QList>
-#include <QTime>
 
 
 namespace nzmqt
@@ -42,79 +41,53 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullSink : public SampleBase
+namespace pubsub
+{
+
+class Subscriber : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit PushPullSink(ZMQContext& context, const QString& sinkAddress, QObject *parent = 0)
+    explicit Subscriber(ZMQContext& context, const QString& address, const QString& topic, QObject *parent = 0)
         : super(parent)
-        , sinkAddress_(sinkAddress)
-        , sink_(0)
-        , numberOfWorkItems_(-1)
+        , address_(address), topic_(topic)
+        , socket_(0)
     {
-        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
-        sink_->setObjectName("PushPullSink.Socket.sink(PULL)");
-        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
+        socket_ = context.createSocket(ZMQSocket::TYP_SUB, this);
+        socket_->setObjectName("Subscriber.Socket.socket(SUB)");
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
     }
 
 signals:
-    void batchStarted(int numberOfWorkItems);
-    void workItemResultReceived();
-    void batchCompleted();
+    void pingReceived(const QList<QByteArray>& message);
 
 protected:
     void startImpl()
     {
-        sink_->bindTo(sinkAddress_);
+        socket_->subscribeTo(topic_);
+        socket_->connectTo(address_);
     }
 
 protected slots:
-    void batchEvent(const QList<QByteArray>& message)
+    void messageReceived(const QList<QByteArray>& message)
     {
-        if (numberOfWorkItems_ < 0)
-        {
-            // 'message' is a batch start message.
-            numberOfWorkItems_ = message[0].toUInt();
-            qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
-            stopWatch_.start();
-            batchStarted(numberOfWorkItems_);
-
-            if (numberOfWorkItems_)
-                return;
-        }
-
-        if (numberOfWorkItems_ > 0)
-        {
-            if (numberOfWorkItems_ % 10 == 0)
-                qDebug() << numberOfWorkItems_;
-            else
-                qDebug() << ".";
-
-            --numberOfWorkItems_;
-            emit workItemResultReceived();
-        }
-
-        if (!numberOfWorkItems_)
-        {
-            int msec = stopWatch_.elapsed();
-            qDebug() << "FINISHED all task in " << msec << "msec";
-            numberOfWorkItems_ = -1;
-            emit batchCompleted();
-        }
+        qDebug() << "Subscriber> " << message;
+        emit pingReceived(message);
     }
 
 private:
-    QString sinkAddress_;
-    ZMQSocket* sink_;
+    QString address_;
+    QString topic_;
 
-    int numberOfWorkItems_;
-    QTime stopWatch_;
+    ZMQSocket* socket_;
 };
 
 }
 
 }
 
-#endif // NZMQT_PUSHPULLSINK_H
+}
+
+#endif // NZMQT_PUBSUBCLIENT_H

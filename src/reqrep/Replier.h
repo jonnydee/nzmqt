@@ -24,14 +24,15 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_PUBSUBCLIENT_H
-#define NZMQT_PUBSUBCLIENT_H
+#ifndef NZMQT_REQREPSERVER_H
+#define NZMQT_REQREPSERVER_H
 
 #include "common/SampleBase.h"
 
 #include <nzmqt/nzmqt.hpp>
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QList>
 
 
@@ -41,42 +42,55 @@ namespace nzmqt
 namespace samples
 {
 
-class PubSubClient : public SampleBase
+namespace reqrep
+{
+
+class Replier : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit PubSubClient(ZMQContext& context, const QString& address, const QString& topic, QObject *parent = 0)
+    explicit Replier(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent = 0)
         : super(parent)
-        , address_(address), topic_(topic)
+        , address_(address), replyMsg_(replyMsg)
         , socket_(0)
     {
-        socket_ = context.createSocket(ZMQSocket::TYP_SUB, this);
-        socket_->setObjectName("PubSubClient.Socket.socket(SUB)");
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(messageReceived(const QList<QByteArray>&)));
+        socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
+        socket_->setObjectName("Replier.Socket.socket(REP)");
+        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveRequest(const QList<QByteArray>&)));
     }
 
 signals:
-    void pingReceived(const QList<QByteArray>& message);
+    void requestReceived(const QList<QByteArray>& request);
+    void replySent(const QList<QByteArray>& request);
 
 protected:
     void startImpl()
     {
-        socket_->subscribeTo(topic_);
-        socket_->connectTo(address_);
+        socket_->bindTo(address_);
     }
 
 protected slots:
-    void messageReceived(const QList<QByteArray>& message)
+    void receiveRequest(const QList<QByteArray>& request)
     {
-        qDebug() << "PubSubClient> " << message;
-        emit pingReceived(message);
+        static quint64 counter = 0;
+
+        qDebug() << "Replier::requestReceived> " << request;
+        emit requestReceived(request);
+
+        QList<QByteArray> reply;
+        reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
+        reply += replyMsg_.toLocal8Bit();
+        reply += request; // We also append original request.
+        qDebug() << "Replier::sendReply> " << reply;
+        socket_->sendMessage(reply);
+        emit replySent(reply);
     }
 
 private:
     QString address_;
-    QString topic_;
+    QString replyMsg_;
 
     ZMQSocket* socket_;
 };
@@ -85,4 +99,6 @@ private:
 
 }
 
-#endif // NZMQT_PUBSUBCLIENT_H
+}
+
+#endif // NZMQT_REQREPSERVER_H

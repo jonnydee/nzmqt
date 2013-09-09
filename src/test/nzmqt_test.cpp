@@ -24,13 +24,13 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#include "pubsub/PubSubClient.h"
-#include "pubsub/PubSubServer.h"
-#include "reqrep/ReqRepClient.h"
-#include "reqrep/ReqRepServer.h"
-#include "pushpull/PushPullVentilator.h"
-#include "pushpull/PushPullWorker.h"
-#include "pushpull/PushPullSink.h"
+#include "pubsub/Publisher.h"
+#include "pubsub/Subscriber.h"
+#include "reqrep/Requester.h"
+#include "reqrep/Replier.h"
+#include "pushpull/Ventilator.h"
+#include "pushpull/Worker.h"
+#include "pushpull/Sink.h"
 
 #include <QCoreApplication>
 #include <QString>
@@ -80,7 +80,7 @@ void NzmqtTest::testPubSub()
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
         // Create publisher.
-        samples::PubSubServer* publisher = new samples::PubSubServer(*context, "inproc://pubsub", "ping");
+        samples::pubsub::Publisher* publisher = new samples::pubsub::Publisher(*context, "inproc://pubsub", "ping");
         QSignalSpy spyPublisherPingSent(publisher, SIGNAL(pingSent(const QList<QByteArray>&)));
         QSignalSpy spyPublisherFailure(publisher, SIGNAL(failure(const QString&)));
         QSignalSpy spyPublisherFinished(publisher, SIGNAL(finished()));
@@ -89,7 +89,7 @@ void NzmqtTest::testPubSub()
         QSignalSpy spyPublisherThreadFinished(publisherThread, SIGNAL(finished()));
 
         // Create subscriber.
-        samples::PubSubClient* subscriber = new samples::PubSubClient(*context, "inproc://pubsub", "ping");
+        samples::pubsub::Subscriber* subscriber = new samples::pubsub::Subscriber(*context, "inproc://pubsub", "ping");
         QSignalSpy spySubscriberPingReceived(subscriber, SIGNAL(pingReceived(const QList<QByteArray>&)));
         QSignalSpy spySubscriberFailure(subscriber, SIGNAL(failure(const QString&)));
         QSignalSpy spySubscriberFinished(subscriber, SIGNAL(finished()));
@@ -144,23 +144,23 @@ void NzmqtTest::testReqRep()
     try {
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
-        // Create server.
-        samples::ReqRepServer* server = new samples::ReqRepServer(*context, "inproc://reqrep", "world");
-        QSignalSpy spyServerRequestReceived(server, SIGNAL(requestReceived(const QList<QByteArray>&)));
-        QSignalSpy spyServerFailure(server, SIGNAL(failure(const QString&)));
-        QSignalSpy spyServerFinished(server, SIGNAL(finished()));
-        // Create server execution thread.
-        QThread* serverThread = makeExecutionThread(*server);
-        QSignalSpy spyServerThreadFinished(serverThread, SIGNAL(finished()));
+        // Create replier.
+        samples::reqrep::Replier* replier = new samples::reqrep::Replier(*context, "inproc://reqrep", "world");
+        QSignalSpy spyReplierRequestReceived(replier, SIGNAL(requestReceived(const QList<QByteArray>&)));
+        QSignalSpy spyReplierFailure(replier, SIGNAL(failure(const QString&)));
+        QSignalSpy spyReplierFinished(replier, SIGNAL(finished()));
+        // Create replier execution thread.
+        QThread* replierThread = makeExecutionThread(*replier);
+        QSignalSpy spyReplierThreadFinished(replierThread, SIGNAL(finished()));
 
-        // Create client.
-        samples::ReqRepClient* client = new samples::ReqRepClient(*context, "inproc://reqrep", "hello");
-        QSignalSpy spyClientRequestSent(client, SIGNAL(requestSent(const QList<QByteArray>&)));
-        QSignalSpy spyClientFailure(client, SIGNAL(failure(const QString&)));
-        QSignalSpy spyClientFinished(client, SIGNAL(finished()));
-        // Create client execution thread.
-        QThread* clientThread = makeExecutionThread(*client);
-        QSignalSpy spyClientThreadFinished(clientThread, SIGNAL(finished()));
+        // Create requester.
+        samples::reqrep::Requester* requester = new samples::reqrep::Requester(*context, "inproc://reqrep", "hello");
+        QSignalSpy spyRequesterRequestSent(requester, SIGNAL(requestSent(const QList<QByteArray>&)));
+        QSignalSpy spyRequesterFailure(requester, SIGNAL(failure(const QString&)));
+        QSignalSpy spyRequesterFinished(requester, SIGNAL(finished()));
+        // Create requester execution thread.
+        QThread* requesterThread = makeExecutionThread(*requester);
+        QSignalSpy spyRequesterThreadFinished(requesterThread, SIGNAL(finished()));
 
         //
         // START TEST
@@ -168,12 +168,12 @@ void NzmqtTest::testReqRep()
 
         context->start();
 
-        serverThread->start();
+        replierThread->start();
         QTest::qWait(500);
-        clientThread->start();
+        requesterThread->start();
 
-        QTimer::singleShot(6000, server, SLOT(stop()));
-        QTimer::singleShot(6000, client, SLOT(stop()));
+        QTimer::singleShot(6000, replier, SLOT(stop()));
+        QTimer::singleShot(6000, requester, SLOT(stop()));
 
         QTest::qWait(8000);
 
@@ -181,22 +181,22 @@ void NzmqtTest::testReqRep()
         // CHECK POSTCONDITIONS
         //
 
-        qDebug() << "Client requests sent:" << spyClientRequestSent.size();
-        qDebug() << "Server requests received:" << spyServerRequestReceived.size();
+        qDebug() << "Requester requests sent:" << spyRequesterRequestSent.size();
+        qDebug() << "Replier requests received:" << spyReplierRequestReceived.size();
 
-        QCOMPARE(spyServerFailure.size(), 0);
-        QCOMPARE(spyClientFailure.size(), 0);
+        QCOMPARE(spyReplierFailure.size(), 0);
+        QCOMPARE(spyRequesterFailure.size(), 0);
 
-        QVERIFY2(spyServerRequestReceived.size() > 3, "Server didn't send any/enough pings.");
-        QVERIFY2(spyClientRequestSent.size() > 3, "Client didn't receive any/enough pings.");
+        QVERIFY2(spyReplierRequestReceived.size() > 3, "Server didn't send any/enough pings.");
+        QVERIFY2(spyRequesterRequestSent.size() > 3, "Client didn't receive any/enough pings.");
 
-        QCOMPARE(spyServerRequestReceived.size(), spyClientRequestSent.size());
+        QCOMPARE(spyReplierRequestReceived.size(), spyRequesterRequestSent.size());
 
-        QCOMPARE(spyServerFinished.size(), 1);
-        QCOMPARE(spyClientFinished.size(), 1);
+        QCOMPARE(spyReplierFinished.size(), 1);
+        QCOMPARE(spyRequesterFinished.size(), 1);
 
-        QCOMPARE(spyServerThreadFinished.size(), 1);
-        QCOMPARE(spyClientThreadFinished.size(), 1);
+        QCOMPARE(spyReplierThreadFinished.size(), 1);
+        QCOMPARE(spyRequesterThreadFinished.size(), 1);
     }
     catch (std::exception& ex)
     {
@@ -210,7 +210,7 @@ void NzmqtTest::testPushPull()
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
         // Create ventilator.
-        samples::PushPullVentilator* ventilator = new samples::PushPullVentilator(*context, "tcp://127.0.0.1:5557", "tcp://127.0.0.1:5558", 200);
+        samples::pushpull::Ventilator* ventilator = new samples::pushpull::Ventilator(*context, "tcp://127.0.0.1:5557", "tcp://127.0.0.1:5558", 200);
         QSignalSpy spyVentilatorBatchStarted(ventilator, SIGNAL(batchStarted(int)));
         QSignalSpy spyVentilatorWorkItemSent(ventilator, SIGNAL(workItemSent(quint32)));
         QSignalSpy spyVentilatorFailure(ventilator, SIGNAL(failure(const QString&)));
@@ -220,7 +220,7 @@ void NzmqtTest::testPushPull()
         QSignalSpy spyVentilatorThreadFinished(ventilatorThread, SIGNAL(finished()));
 
         // Create worker.
-        samples::PushPullWorker* worker = new samples::PushPullWorker(*context, "tcp://127.0.0.1:5557", "tcp://127.0.0.1:5558");
+        samples::pushpull::Worker* worker = new samples::pushpull::Worker(*context, "tcp://127.0.0.1:5557", "tcp://127.0.0.1:5558");
         QSignalSpy spyWorkerWorkItemReceived(worker, SIGNAL(workItemReceived(quint32)));
         QSignalSpy spyWorkerWorkItemResultSent(worker, SIGNAL(workItemResultSent()));
         QSignalSpy spyWorkerFailure(worker, SIGNAL(failure(const QString&)));
@@ -230,7 +230,7 @@ void NzmqtTest::testPushPull()
         QSignalSpy spyWorkerThreadFinished(workerThread, SIGNAL(finished()));
 
         // Create sink.
-        samples::PushPullSink* sink = new samples::PushPullSink(*context, "tcp://127.0.0.1:5558");
+        samples::pushpull::Sink* sink = new samples::pushpull::Sink(*context, "tcp://127.0.0.1:5558");
         QSignalSpy spySinkBatchStarted(sink, SIGNAL(batchStarted(int)));
         QSignalSpy spySinkWorkItemResultReceived(sink, SIGNAL(workItemResultReceived()));
         QSignalSpy spySinkBatchCompleted(sink, SIGNAL(batchCompleted()));

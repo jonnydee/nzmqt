@@ -43,22 +43,25 @@ namespace nzmqt
 namespace samples
 {
 
-class PushPullVentilator : public SampleBase
+namespace pushpull
+{
+
+class Ventilator : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit PushPullVentilator(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent = 0)
+    explicit Ventilator(ZMQContext& context, const QString& ventilatorAddress, const QString& sinkAddress, quint32 numberOfWorkItems, QObject* parent = 0)
         : super(parent)
         , ventilatorAddress_(ventilatorAddress), sinkAddress_(sinkAddress), numberOfWorkItems_(numberOfWorkItems)
         , ventilator_(0), sink_(0)
     {
         ventilator_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
-        ventilator_->setObjectName("PushPullVentilator.Socket.ventilator(PUSH)");
+        ventilator_->setObjectName("Ventilator.Socket.ventilator(PUSH)");
 
         sink_ = context.createSocket(ZMQSocket::TYP_PUSH, this);
-        sink_->setObjectName("PushPullVentilator.Socket.sink(PUSH)");
+        sink_->setObjectName("Ventilator.Socket.sink(PUSH)");
     }
 
     int numberOfWorkItems() const
@@ -125,6 +128,8 @@ private:
     ZMQSocket* ventilator_;
     ZMQSocket* sink_;
 };
+
+}
 
 }
 

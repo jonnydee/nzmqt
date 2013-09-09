@@ -46,13 +46,13 @@ SOURCES += \
 HEADERS += \
     ../include/nzmqt/nzmqt.hpp \
     common/SampleBase.h \
-    pubsub/PubSubServer.h \
-    pubsub/PubSubClient.h \
-    reqrep/ReqRepServer.h \
-    reqrep/ReqRepClient.h \
-    pushpull/PushPullWorker.h \
-    pushpull/PushPullVentilator.h \
-    pushpull/PushPullSink.h \
+    pubsub/Subscriber.h \
+    pubsub/Publisher.h \
+    pushpull/Sink.h \
+    pushpull/Worker.h \
+    pushpull/Ventilator.h \
+    reqrep/Requester.h \
+    reqrep/Replier.h \
     NzmqtApp.h
 
 LIBS += -lzmq

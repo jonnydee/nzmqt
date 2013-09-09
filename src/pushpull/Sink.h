@@ -24,16 +24,16 @@
 // authors and should not be interpreted as representing official policies, either expressed
 // or implied, of Johann Duscher.
 
-#ifndef NZMQT_REQREPSERVER_H
-#define NZMQT_REQREPSERVER_H
+#ifndef NZMQT_PUSHPULLSINK_H
+#define NZMQT_PUSHPULLSINK_H
 
 #include "common/SampleBase.h"
 
 #include <nzmqt/nzmqt.hpp>
 
 #include <QByteArray>
-#include <QDateTime>
 #include <QList>
+#include <QTime>
 
 
 namespace nzmqt
@@ -42,58 +42,84 @@ namespace nzmqt
 namespace samples
 {
 
-class ReqRepServer : public SampleBase
+namespace pushpull
+{
+
+class Sink : public SampleBase
 {
     Q_OBJECT
     typedef SampleBase super;
 
 public:
-    explicit ReqRepServer(ZMQContext& context, const QString& address, const QString& replyMsg, QObject* parent = 0)
+    explicit Sink(ZMQContext& context, const QString& sinkAddress, QObject *parent = 0)
         : super(parent)
-        , address_(address), replyMsg_(replyMsg)
-        , socket_(0)
+        , sinkAddress_(sinkAddress)
+        , sink_(0)
+        , numberOfWorkItems_(-1)
     {
-        socket_ = context.createSocket(ZMQSocket::TYP_REP, this);
-        socket_->setObjectName("ReqRepServer.Socket.socket(REP)");
-        connect(socket_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(receiveRequest(const QList<QByteArray>&)));
+        sink_ = context.createSocket(ZMQSocket::TYP_PULL, this);
+        sink_->setObjectName("Sink.Socket.sink(PULL)");
+        connect(sink_, SIGNAL(messageReceived(const QList<QByteArray>&)), SLOT(batchEvent(const QList<QByteArray>&)));
     }
 
 signals:
-    void requestReceived(const QList<QByteArray>& request);
-    void replySent(const QList<QByteArray>& request);
+    void batchStarted(int numberOfWorkItems);
+    void workItemResultReceived();
+    void batchCompleted();
 
 protected:
     void startImpl()
     {
-        socket_->bindTo(address_);
+        sink_->bindTo(sinkAddress_);
     }
 
 protected slots:
-    void receiveRequest(const QList<QByteArray>& request)
+    void batchEvent(const QList<QByteArray>& message)
     {
-        static quint64 counter = 0;
+        if (numberOfWorkItems_ < 0)
+        {
+            // 'message' is a batch start message.
+            numberOfWorkItems_ = message[0].toUInt();
+            qDebug() << "Batch started for >" << numberOfWorkItems_ << "< work items.";
+            stopWatch_.start();
+            batchStarted(numberOfWorkItems_);
 
-        qDebug() << "ReqRepServer::requestReceived> " << request;
-        emit requestReceived(request);
+            if (numberOfWorkItems_)
+                return;
+        }
 
-        QList<QByteArray> reply;
-        reply += QString("REPLY[%1: %2]").arg(++counter).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLocal8Bit();
-        reply += replyMsg_.toLocal8Bit();
-        reply += request; // We also append original request.
-        qDebug() << "ReqRepServer::sendReply> " << reply;
-        socket_->sendMessage(reply);
-        emit replySent(reply);
+        if (numberOfWorkItems_ > 0)
+        {
+            if (numberOfWorkItems_ % 10 == 0)
+                qDebug() << numberOfWorkItems_;
+            else
+                qDebug() << ".";
+
+            --numberOfWorkItems_;
+            emit workItemResultReceived();
+        }
+
+        if (!numberOfWorkItems_)
+        {
+            int msec = stopWatch_.elapsed();
+            qDebug() << "FINISHED all task in " << msec << "msec";
+            numberOfWorkItems_ = -1;
+            emit batchCompleted();
+        }
     }
 
 private:
-    QString address_;
-    QString replyMsg_;
+    QString sinkAddress_;
+    ZMQSocket* sink_;
 
-    ZMQSocket* socket_;
+    int numberOfWorkItems_;
+    QTime stopWatch_;
 };
 
 }
 
 }
 
-#endif // NZMQT_REQREPSERVER_H
+}
+
+#endif // NZMQT_PUSHPULLSINK_H
