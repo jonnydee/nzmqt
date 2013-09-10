@@ -29,7 +29,7 @@ QT       += core
 
 QT       -= gui
 
-TARGET = nzmqt
+TARGET = nzmqt_app
 VERSION = 2.2.1
 DESTDIR = $$_PRO_FILE_PWD_/../bin
 CONFIG   += console
@@ -38,10 +38,13 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 DEFINES += \
+# Uncomment this line for nzmqt "Include and Source File" compilation option.
 #    NZMQT_LIB
 
 SOURCES += \
-    main.cpp
+# Uncomment this line for nzmqt "Include and Source File" compilation option.
+#    nzmqt/nzmqt.cpp \
+    app/main.cpp
 
 HEADERS += \
     ../include/nzmqt/nzmqt.hpp \
@@ -53,7 +56,7 @@ HEADERS += \
     pushpull/Ventilator.hpp \
     reqrep/Requester.hpp \
     reqrep/Replier.hpp \
-    NzmqtApp.hpp
+    app/NzmqtApp.hpp
 
 LIBS += -lzmq
 

@@ -203,12 +203,12 @@ USAGE: %1 pushpull-ventilator <ventilator-address> <sink-address> <numberOfWorkI
        %1 pushpull-sink <sink-address>                                                -- Start sink.\n\
 \n\
 Publish-Subscribe Sample:\n\
-* Server: %1 pubsub-publisher tcp://127.0.0.1:1234 ping\n\
-* Client: %1 pubsub-subscriber tcp://127.0.0.1:1234 ping\n\
+* Publisher:   %1 pubsub-publisher tcp://127.0.0.1:1234 ping\n\
+* Subscriber:  %1 pubsub-subscriber tcp://127.0.0.1:1234 ping\n\
 \n\
 Request-Reply Sample:\n\
-* Server: %1 reqrep-replier tcp://127.0.0.1:1234 World\n\
-* Client: %1 reqrep-requester tcp://127.0.0.1:1234 Hello\n\
+* Replier:     %1 reqrep-replier tcp://127.0.0.1:1234 World\n\
+* Requester:   %1 reqrep-requester tcp://127.0.0.1:1234 Hello\n\
 \n\
 Push-Pull Sample:\n\
 * Ventilator:  %1 pushpull-ventilator tcp://127.0.0.1:5557 tcp://127.0.0.1:5558 100\n\
