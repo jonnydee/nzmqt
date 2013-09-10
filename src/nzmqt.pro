@@ -38,9 +38,12 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 DEFINES += \
+# Uncomment this line for nzmqt "Include and Source File" compilation option.
 #    NZMQT_LIB
 
 SOURCES += \
+# Uncomment this line for nzmqt "Include and Source File" compilation option.
+#    nzmqt/nzmqt.cpp \
     main.cpp
 
 HEADERS += \
