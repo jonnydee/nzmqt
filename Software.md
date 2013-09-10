@@ -6,7 +6,7 @@ Getting Started
 
 ### Download nzmqt
 
-First of all, decide which version of nzmqt you will need. Your choice will depend on the version of 0MQ you are going to use. In order to make this choice easier a new versioning scheme for nzmqt has been introduced. nzmqt version numbers indicate compatibility with 0MQ version <0MQ-major>.<0MQ-minor>.<0MQ-bugfix> by adopting the major and minor part. For instance, nzmqt releases compatible with all 0MQ versions 2.2.x will have a correponding version number 2.2.y, and an nzmqt version number 3.2.y indicates compatibility with all 0MQ versions 3.2.x. Note that there is no relation between nzmqt's and 0MQ's bugfix versions as bugfixes do not introduce incompatible API changes. Also note that release 0.7 is the last release NOT conforming to this scheme.
+First of all, decide which version of nzmqt you will need. Your choice will depend on the version of 0MQ you are going to use. In order to make this choice easier a new versioning scheme for nzmqt has been introduced. nzmqt version numbers indicate compatibility with 0MQ version <0MQ-major>.<0MQ-minor>.<0MQ-bugfix> by adopting the major and minor part. For instance, nzmqt releases compatible with all 0MQ versions 2.2.x will have a corresponding version number 2.2.y, and an nzmqt version number 3.2.y indicates compatibility with all 0MQ versions 3.2.x. Note that there is no relation between nzmqt's and 0MQ's bugfix versions as bugfixes do not introduce incompatible API changes. Also note that release 0.7 is the last release NOT conforming to this scheme.
 
 Once you know which version you need you can either clone the complete nzmqt code repository or you can directly download the sources of a release as a ZIP file from GitHub.
 
