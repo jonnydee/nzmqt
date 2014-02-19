@@ -1,5 +1,7 @@
-Release 2.2.1-dev
-=================
+# Releases for ZMQ 2.x
+
+## Release 2.2.1
+
 * Improved documentation.
 * Emit poll errors as signals (instead of ignoring them).
 * Fixed gh-8: Unsafe disconnect in PollingZMQContext::unregisterSocket(QObject\* socket_).
@@ -8,19 +10,21 @@ Release 2.2.1-dev
 * Feature gh-15: Additionally allow to link nzmqt 2.2.1 as static or shared lib.
 * Task gh-16: Implement unit tests.
 
-API Changes
------------
+### API Changes
+
 * Method 'ZMQContext::createSocket()' does not implicitly set the 'ZMQContext' instance as parent of the created instance anymore. So if you don't pass a pointer to a parent QObject (NULL pointer) the socket instance won't have a parent set. Code doing this will **leak memory** now! Please make sure you delete the socket instance yourself in such cases.
 * Method 'ZMQSocket::close()' now is a slot.
 
 
-Release 2.2.0
-=============
+## Release 2.2.0
+
 * fixed gh-5: Change PollingZMQContext::poll to empty the socket queue rather than poll once per interval.
 
 
-Release 0.7
-===========
+# Older Releases
+
+## Release 0.7
+
 * Introduced enumeration types for several ZMQ constants for type-safety.
 * Added a new polling based implementation that works for all ZMQ communication protocols.
 * Dropped support for REQ-REP protocol for old 'QSocketNotifier' based implementation.
