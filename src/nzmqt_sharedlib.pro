@@ -65,3 +65,15 @@ OTHER_FILES += \
     ../LICENSE.header \
     ../CHANGELOG.md \
     ../LICENSE.md
+
+
+
+#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../Libs/ZEROMQ/lib/ -llibzmq
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../Libs/ZEROMQ/lib/ -llibzmq_d
+
+#INCLUDEPATH += $$PWD/../../../../../Libs/ZEROMQ/include
+#DEPENDPATH += $$PWD/../../../../../Libs/ZEROMQ/include
+
+
+#INCLUDEPATH += $$PWD/../include
+#DEPENDPATH += $$PWD/../include

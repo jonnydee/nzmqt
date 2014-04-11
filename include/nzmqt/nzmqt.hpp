@@ -1,4 +1,4 @@
-// Copyright 2011-2014 Johann Duscher (a.k.a. Jonny Dee). All rights reserved.
+﻿// Copyright 2011-2014 Johann Duscher (a.k.a. Jonny Dee). All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
@@ -269,7 +269,8 @@ namespace nzmqt
         void unsubscribeFrom(const QByteArray& filter_);
 
     signals:
-        void messageReceived(const QList<QByteArray>&);
+//        void messageReceived(const QList<QByteArray>&);
+        void readyRead();
 
     public slots:
         void close();
@@ -383,7 +384,7 @@ namespace nzmqt
 
         // This method is called by the socket's context object in order
         // to signal a new received message.
-        void onMessageReceived(const QList<QByteArray>& message);
+//        void onMessageReceived(const QList<QByteArray>& message);
     };
 
     class NZMQT_API PollingZMQContext : public ZMQContext, public QRunnable

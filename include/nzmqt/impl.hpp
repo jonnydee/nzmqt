@@ -1,4 +1,4 @@
-// Copyright 2011-2014 Johann Duscher (a.k.a. Jonny Dee). All rights reserved.
+﻿// Copyright 2011-2014 Johann Duscher (a.k.a. Jonny Dee). All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
@@ -218,6 +218,7 @@ NZMQT_INLINE QList<QByteArray> ZMQSocket::receiveMessage()
     ZMQMessage msg;
     while (receiveMessage(&msg))
     {
+//        qDebug() << msg.toByteArray();
         parts += msg.toByteArray();
         msg.rebuild();
 
@@ -421,10 +422,10 @@ NZMQT_INLINE PollingZMQSocket::PollingZMQSocket(PollingZMQContext* context_, Typ
 {
 }
 
-NZMQT_INLINE void PollingZMQSocket::onMessageReceived(const QList<QByteArray>& message)
-{
-    emit messageReceived(message);
-}
+//NZMQT_INLINE void PollingZMQSocket::onMessageReceived(const QList<QByteArray>& message)
+//{
+//    emit messageReceived(message);
+//}
 
 
 
@@ -508,8 +509,10 @@ NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
             if (poIt->revents & ZMQSocket::EVT_POLLIN)
             {
                 PollingZMQSocket* socket = static_cast<PollingZMQSocket*>(*soIt);
-                QList<QByteArray> message = socket->receiveMessage();
-                socket->onMessageReceived(message);
+//                QList<QByteArray> message = socket->receiveMessage();
+////                qDebug() << message;
+//                socket->onMessageReceived(message);
+                emit socket->readyRead();
                 i++;
             }
             ++soIt;
@@ -591,8 +594,9 @@ NZMQT_INLINE void SocketNotifierZMQSocket::socketReadActivity()
 
     while(events() & EVT_POLLIN)
     {
-        QList<QByteArray> message = receiveMessage();
-        emit messageReceived(message);
+//        QList<QByteArray> message = receiveMessage();
+//        emit messageReceived(message);
+        emit readyRead();
     }
 
     socketNotifyRead_->setEnabled(true);
