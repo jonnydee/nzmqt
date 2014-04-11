@@ -29,7 +29,7 @@ QT       += testlib
 QT       -= gui
 
 TARGET = nzmqt_test
-VERSION = 3.2.0
+VERSION = 3.2.1
 DESTDIR = $$_PRO_FILE_PWD_/../bin
 CONFIG   += console
 CONFIG   -= app_bundle

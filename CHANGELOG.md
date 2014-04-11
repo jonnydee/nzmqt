@@ -1,5 +1,7 @@
 # Releases for ZMQ 3.x
 
+## Release 3.2.1 (TO BE RELEASED)
+
 ## Release 3.2.0
 
 * Improved documentation.

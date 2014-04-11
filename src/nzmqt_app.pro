@@ -30,7 +30,7 @@ QT       += core
 QT       -= gui
 
 TARGET = nzmqt_app
-VERSION = 3.2.0
+VERSION = 3.2.1
 DESTDIR = $$_PRO_FILE_PWD_/../bin
 CONFIG   += console
 CONFIG   -= app_bundle

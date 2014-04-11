@@ -28,7 +28,7 @@
 QT       -= gui
 
 TARGET = nzmqt
-VERSION = 3.2.0
+VERSION = 3.2.1
 DESTDIR = $$_PRO_FILE_PWD_/../bin
 TEMPLATE = lib
 
