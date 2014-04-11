@@ -56,10 +56,6 @@
     #define NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL 10 /* msec */
 #endif
 
-// Declare metatypes for using them in Qt signals.
-Q_DECLARE_METATYPE(QList< QList<QByteArray> >)
-Q_DECLARE_METATYPE(QList<QByteArray>)
-
 class QSocketNotifier;
 
 namespace nzmqt
@@ -213,13 +209,6 @@ namespace nzmqt
 
         bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_NOBLOCK);
 
-        bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK);
-
-        // Interprets the provided list of byte arrays as a multi-part message
-        // and sends them accordingly.
-        // If an empty list is provided this method doesn't do anything and returns trua.
-        bool sendMessage(const QList<QByteArray>& msg_, SendFlags flags_ = SND_NOBLOCK);
-
         // Receives a message or a message part.
         bool receiveMessage(ZMQMessage* msg_, ReceiveFlags flags_ = RCV_NOBLOCK);
 
@@ -273,6 +262,15 @@ namespace nzmqt
 
     public slots:
         void close();
+
+        // Send the given bytes as a single-part message.
+        bool sendMessage(const QByteArray& bytes_, nzmqt::ZMQSocket::SendFlags flags_ = SND_NOBLOCK);
+
+        // Interprets the provided list of byte arrays as a multi-part message
+        // and sends them accordingly.
+        // If an empty list is provided this method doesn't do anything and returns trua.
+        bool sendMessage(const QList<QByteArray>& msg_, nzmqt::ZMQSocket::SendFlags flags_ = SND_NOBLOCK);
+
 
     protected:
         ZMQSocket(ZMQContext* context_, Type type_);
@@ -501,6 +499,12 @@ namespace nzmqt
         return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(parent_, io_threads_);
     }
 }
+
+// Declare metatypes for using them in Qt signals.
+Q_DECLARE_METATYPE(QList<QByteArray>)
+Q_DECLARE_METATYPE(QList< QList<QByteArray> >)
+Q_DECLARE_METATYPE(nzmqt::ZMQSocket::SendFlags)
+
 
 #if !defined(NZMQT_LIB)
  #include "nzmqt/impl.hpp"

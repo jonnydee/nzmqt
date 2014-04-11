@@ -36,7 +36,7 @@
 #include <QString>
 #include <QtTest>
 
-namespace nzmqt
+namespace test
 {
 
 class NzmqtTest : public QObject
@@ -47,12 +47,23 @@ public:
     NzmqtTest();
 
 protected:
-    QThread* makeExecutionThread(samples::SampleBase& sample) const;
+    QThread* makeExecutionThread(nzmqt::samples::SampleBase& sample) const;
 
 private slots:
+    void testSignalSlotConnections();
     void testPubSub();
     void testReqRep();
     void testPushPull();
+
+protected slots:
+    // Dummy slot used in test case 'testSignalSlotConnections'.
+    void receiveMessage(const QList<QByteArray>& msg) { Q_UNUSED(msg); }
+
+signals:
+    // Dummy signal used in test case 'testSignalSlotConnections'.
+    void messageSent(const QList<QByteArray>& msg);
+    // Dummy signal used in test case 'testSignalSlotConnections'.
+    void messageSent(const QList<QByteArray>& msg, nzmqt::ZMQSocket::SendFlags flags);
 };
 
 NzmqtTest::NzmqtTest()
@@ -60,7 +71,7 @@ NzmqtTest::NzmqtTest()
     qRegisterMetaType< QList<QByteArray> >();
 }
 
-QThread* NzmqtTest::makeExecutionThread(samples::SampleBase& sample) const
+QThread* NzmqtTest::makeExecutionThread(nzmqt::samples::SampleBase& sample) const
 {
     QThread* thread = new QThread;
     sample.moveToThread(thread);
@@ -74,8 +85,34 @@ QThread* NzmqtTest::makeExecutionThread(samples::SampleBase& sample) const
     return thread;
 }
 
+void NzmqtTest::testSignalSlotConnections()
+{
+    try
+    {
+        QScopedPointer<nzmqt::ZMQContext> context(nzmqt::createDefaultContext());
+        nzmqt::ZMQSocket* socket = context->createSocket(nzmqt::ZMQSocket::TYP_PUB, context.data());
+
+        QVERIFY2(QObject::connect(this, SIGNAL(messageSent(QList<QByteArray>)),
+                                  socket, SLOT(sendMessage(QList<QByteArray>))),
+                 "signal/slot connection QObject->ZMQSocket");
+
+        QVERIFY2(QObject::connect(this, SIGNAL(messageSent(QList<QByteArray>, nzmqt::ZMQSocket::SendFlags)),
+                                  socket, SLOT(sendMessage(QList<QByteArray>, nzmqt::ZMQSocket::SendFlags))),
+                 "signal/slot connection QObject->ZMQSocket WITH SendFlags");
+
+        QVERIFY2(QObject::connect(socket, SIGNAL(messageReceived(QList<QByteArray>)),
+                                  this, SLOT(receiveMessage(QList<QByteArray>))),
+                 "signal/slot connection ZMQSocket->QObject");
+    }
+    catch (std::exception& ex)
+    {
+        QFAIL(ex.what());
+    }
+}
+
 void NzmqtTest::testPubSub()
 {
+    using namespace nzmqt;
     try {
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
@@ -141,6 +178,7 @@ void NzmqtTest::testPubSub()
 
 void NzmqtTest::testReqRep()
 {
+    using namespace nzmqt;
     try {
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
@@ -209,6 +247,7 @@ void NzmqtTest::testReqRep()
 
 void NzmqtTest::testPushPull()
 {
+    using namespace nzmqt;
     try {
         QScopedPointer<ZMQContext> context(nzmqt::createDefaultContext());
 
@@ -295,6 +334,6 @@ void NzmqtTest::testPushPull()
 
 }
 
-QTEST_MAIN(nzmqt::NzmqtTest)
+QTEST_MAIN(test::NzmqtTest)
 
 #include "nzmqt_test.moc"
