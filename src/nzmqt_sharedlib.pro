@@ -53,7 +53,7 @@ LIBS += -lzmq
 
 INCLUDEPATH += \
     ../include \
-    ../externals/include \
+    ../3rdparty/cppzmq \
     $(QTDIR)/include \
     /opt/local/include
 
