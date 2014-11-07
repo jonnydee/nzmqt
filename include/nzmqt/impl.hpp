@@ -171,6 +171,16 @@ NZMQT_INLINE void ZMQSocket::bindTo(const char *addr_)
     bind(addr_);
 }
 
+NZMQT_INLINE void ZMQSocket::unbindFrom(const QString& addr_)
+{
+    unbind(addr_.toLocal8Bit());
+}
+
+NZMQT_INLINE void ZMQSocket::unbindFrom(const char *addr_)
+{
+    unbind(addr_);
+}
+
 NZMQT_INLINE void ZMQSocket::connectTo(const QString& addr_)
 {
     zmqsuper::connect(addr_.toLocal8Bit());
@@ -179,6 +189,16 @@ NZMQT_INLINE void ZMQSocket::connectTo(const QString& addr_)
 NZMQT_INLINE void ZMQSocket::connectTo(const char* addr_)
 {
     zmqsuper::connect(addr_);
+}
+
+NZMQT_INLINE void ZMQSocket::disconnectFrom(const QString& addr_)
+{
+    zmqsuper::disconnect(addr_.toLocal8Bit());
+}
+
+NZMQT_INLINE void ZMQSocket::disconnectFrom(const char* addr_)
+{
+    zmqsuper::disconnect(addr_);
 }
 
 NZMQT_INLINE bool ZMQSocket::sendMessage(ZMQMessage& msg_, SendFlags flags_)
@@ -333,6 +353,16 @@ NZMQT_INLINE void ZMQSocket::unsubscribeFrom(const QString& filter_)
 NZMQT_INLINE void ZMQSocket::unsubscribeFrom(const QByteArray& filter_)
 {
     setOption(OPT_UNSUBSCRIBE, filter_);
+}
+
+NZMQT_INLINE void ZMQSocket::setSendHighWaterMark(int value_)
+{
+    setOption(OPT_SNDHWM, value_);
+}
+
+NZMQT_INLINE void ZMQSocket::setReceiveHighWaterMark(int value_)
+{
+    setOption(OPT_RCVHWM, value_);
 }
 
 
