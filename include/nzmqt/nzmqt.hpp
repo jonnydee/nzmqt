@@ -176,7 +176,9 @@ namespace nzmqt
             OPT_LINGER = ZMQ_LINGER,
             OPT_RECONNECT_IVL = ZMQ_RECONNECT_IVL,
             OPT_RECONNECT_IVL_MAX = ZMQ_RECONNECT_IVL_MAX,
-            OPT_BACKLOG = ZMQ_BACKLOG
+            OPT_BACKLOG = ZMQ_BACKLOG,
+            OPT_SNDHWM = ZMQ_SNDHWM,
+            OPT_RCVHWM = ZMQ_RCVHWM
         };
 
         ~ZMQSocket();
@@ -203,9 +205,17 @@ namespace nzmqt
 
         void bindTo(const char *addr_);
 
+        void unbindFrom(const QString& addr_);
+
+        void unbindFrom(const char *addr_);
+
         void connectTo(const QString& addr_);
 
         void connectTo(const char* addr_);
+
+        void disconnectFrom(const QString& addr_);
+
+        void disconnectFrom(const char* addr_);
 
         bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_NOBLOCK);
 
@@ -256,6 +266,10 @@ namespace nzmqt
         void unsubscribeFrom(const QString& filter_);
 
         void unsubscribeFrom(const QByteArray& filter_);
+
+        void setSendHighWaterMark(int value_);
+
+        void setReceiveHighWaterMark(int value_);
 
     signals:
         void messageReceived(const QList<QByteArray>&);
