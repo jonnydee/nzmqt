@@ -365,7 +365,10 @@ NZMQT_INLINE void ZMQSocket::setReceiveHighWaterMark(int value_)
     setOption(OPT_RCVHWM, value_);
 }
 
-
+NZMQT_INLINE bool ZMQSocket::isConnected()
+{
+    return const_cast<ZMQSocket*>(this)->connected();
+}
 
 /*
  * ZMQContext
@@ -593,48 +596,70 @@ NZMQT_INLINE void PollingZMQContext::unregisterSocket(ZMQSocket* socket_)
 NZMQT_INLINE SocketNotifierZMQSocket::SocketNotifierZMQSocket(ZMQContext* context_, Type type_)
     : super(context_, type_)
     , socketNotifyRead_(0)
-//    , socketNotifyWrite_(0)
+    , socketNotifyWrite_(0)
 {
     int fd = fileDescriptor();
 
     socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
     QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
 
-//    socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
-//    socketNotifyWrite_->setEnabled(false);
-//    QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
+    socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
+    QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
 }
 
-//NZMQT_INLINE bool SocketNotifierZMQSocket::sendMessage(const QByteArray& bytes_, SendFlags flags_)
-//{
-//    bool result = super::sendMessage(bytes_, flags_);
-//
-//    if (!result)
-//        socketNotifyWrite_->setEnabled(true);
-//
-//    return result;
-//}
+NZMQT_INLINE SocketNotifierZMQSocket::~SocketNotifierZMQSocket()
+{
+    close();
+}
+
+NZMQT_INLINE void SocketNotifierZMQSocket::close()
+{
+    socketNotifyRead_->deleteLater();
+    socketNotifyWrite_->deleteLater();
+    super::close();
+}
 
 NZMQT_INLINE void SocketNotifierZMQSocket::socketReadActivity()
 {
     socketNotifyRead_->setEnabled(false);
 
-    while(events() & EVT_POLLIN)
+    try
     {
-        QList<QByteArray> message = receiveMessage();
-        emit messageReceived(message);
+        while(isConnected() && (events() & EVT_POLLIN))
+        {
+            QList<QByteArray> message = receiveMessage();
+            emit messageReceived(message);
+        }
+    }
+    catch (const ZMQException& ex)
+    {
+        qWarning("Exception during read: %s", ex.what());
+        emit notifierError(ex.num(), ex.what());
     }
 
     socketNotifyRead_->setEnabled(true);
 }
 
-//NZMQT_INLINE void SocketNotifierZMQSocket::socketWriteActivity()
-//{
-//    if(events() == 0)
-//    {
-//        socketNotifyWrite_->setEnabled(false);
-//    }
-//}
+NZMQT_INLINE void SocketNotifierZMQSocket::socketWriteActivity()
+{
+    socketNotifyWrite_->setEnabled(false);
+
+    try
+    {
+        while (isConnected() && (events() & EVT_POLLIN))
+        {
+            QList<QByteArray> message = receiveMessage();
+            emit messageReceived(message);
+        }
+    }
+    catch (const ZMQException& ex)
+    {
+        qWarning("Exception during write: %s", ex.what());
+        emit notifierError(ex.num(), ex.what());
+    }
+
+    socketNotifyWrite_->setEnabled(true);
+}
 
 
 
@@ -662,7 +687,10 @@ NZMQT_INLINE bool SocketNotifierZMQContext::isStopped() const
 
 NZMQT_INLINE SocketNotifierZMQSocket* SocketNotifierZMQContext::createSocketInternal(ZMQSocket::Type type_)
 {
-    return new SocketNotifierZMQSocket(this, type_);
+    SocketNotifierZMQSocket *socket = new SocketNotifierZMQSocket(this, type_);
+    connect(socket, SIGNAL(notifierError(int,QString)),
+            this, SIGNAL(notifierError(int,QString)));
+    return socket;
 }
 
 }
