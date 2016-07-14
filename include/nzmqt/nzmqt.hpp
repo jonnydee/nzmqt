@@ -271,6 +271,8 @@ namespace nzmqt
 
         void setReceiveHighWaterMark(int value_);
 
+        bool isConnected();
+
     signals:
         void messageReceived(const QList<QByteArray>&);
 
@@ -471,22 +473,27 @@ namespace nzmqt
 
         typedef ZMQSocket super;
 
-//    public:
-//        using super::sendMessage;
+    public:
+        using super::close;
 
-//        bool sendMessage(const QByteArray& bytes_, SendFlags flags_ = SND_NOBLOCK);
+        void close();
+
+    signals:
+        // This signal will be emitted by the socket notifier callback if a call
+        // to the events() method results in an exception.
+        void notifierError(int errorNum, const QString& errorMsg);
 
     protected:
         SocketNotifierZMQSocket(ZMQContext* context_, Type type_);
+        ~SocketNotifierZMQSocket();
 
     protected slots:
         void socketReadActivity();
-
-//        void socketWriteActivity();
+        void socketWriteActivity();
 
     private:
         QSocketNotifier *socketNotifyRead_;
-//        QSocketNotifier *socketNotifyWrite_;
+        QSocketNotifier *socketNotifyWrite_;
     };
 
     class NZMQT_API SocketNotifierZMQContext : public ZMQContext
@@ -503,6 +510,11 @@ namespace nzmqt
         void stop();
 
         bool isStopped() const;
+
+    signals:
+        // This signal will be emitted by the socket notifier callback if a call
+        // to the events() method results in an exception.
+        void notifierError(int errorNum, const QString& errorMsg);
 
     protected:
         SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_);
