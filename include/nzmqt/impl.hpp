@@ -263,9 +263,9 @@ NZMQT_INLINE QList< QList<QByteArray> > ZMQSocket::receiveMessages()
     return ret;
 }
 
-NZMQT_INLINE qint32 ZMQSocket::fileDescriptor() const
+NZMQT_INLINE qintptr ZMQSocket::fileDescriptor() const
 {
-    qint32 value;
+    qintptr value;
     size_t size = sizeof(value);
     getOption(OPT_FD, &value, &size);
     return value;
@@ -598,7 +598,7 @@ NZMQT_INLINE SocketNotifierZMQSocket::SocketNotifierZMQSocket(ZMQContext* contex
     , socketNotifyRead_(0)
     , socketNotifyWrite_(0)
 {
-    int fd = fileDescriptor();
+    qintptr fd = fileDescriptor();
 
     socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
     QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));

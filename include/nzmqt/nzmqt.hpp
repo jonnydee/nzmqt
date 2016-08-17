@@ -235,7 +235,7 @@ namespace nzmqt
         // Note that this method won't work with REQ-REP protocol.
         QList< QList<QByteArray> > receiveMessages();
 
-        qint32 fileDescriptor() const;
+        qintptr fileDescriptor() const;
 
         Events events() const;
 
