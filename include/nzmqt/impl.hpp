@@ -33,6 +33,7 @@
 #include <QMutexLocker>
 #include <QSocketNotifier>
 #include <QTimer>
+#include <climits>
 
 #if defined(NZMQT_LIB)
 // #pragma message("nzmqt is built as library")
@@ -88,7 +89,7 @@ NZMQT_INLINE void ZMQMessage::clone(ZMQMessage* msg_)
 
 NZMQT_INLINE QByteArray ZMQMessage::toByteArray()
 {
-    return QByteArray((const char *)data(), size());
+    return size() <= INT_MAX ? QByteArray(data<char>(), int(size())) : QByteArray();
 }
 
 
@@ -309,7 +310,7 @@ NZMQT_INLINE QByteArray ZMQSocket::identity() const
     char idbuf[256];
     size_t size = sizeof(idbuf);
     getOption(OPT_IDENTITY, idbuf, &size);
-    return QByteArray(idbuf, size);
+    return QByteArray(idbuf, int(size));
 }
 
 NZMQT_INLINE void ZMQSocket::setLinger(int msec_)
