@@ -232,12 +232,12 @@ NZMQT_INLINE bool ZMQSocket::receiveMessage(ZMQMessage* msg_, ReceiveFlags flags
     return recv(msg_, flags_);
 }
 
-NZMQT_INLINE QList<QByteArray> ZMQSocket::receiveMessage()
+NZMQT_INLINE QList<QByteArray> ZMQSocket::receiveMessage(ReceiveFlags flags_)
 {
     QList<QByteArray> parts;
 
     ZMQMessage msg;
-    while (receiveMessage(&msg))
+    while (receiveMessage(&msg, flags_))
     {
         parts += msg.toByteArray();
         msg.rebuild();
@@ -249,16 +249,16 @@ NZMQT_INLINE QList<QByteArray> ZMQSocket::receiveMessage()
     return parts;
 }
 
-NZMQT_INLINE QList< QList<QByteArray> > ZMQSocket::receiveMessages()
+NZMQT_INLINE QList< QList<QByteArray> > ZMQSocket::receiveMessages(ReceiveFlags flags_)
 {
     QList< QList<QByteArray> > ret;
 
-    QList<QByteArray> parts = receiveMessage();
+    QList<QByteArray> parts = receiveMessage(flags_);
     while (!parts.isEmpty())
     {
         ret += parts;
 
-        parts = receiveMessage();
+        parts = receiveMessage(flags_);
     }
 
     return ret;

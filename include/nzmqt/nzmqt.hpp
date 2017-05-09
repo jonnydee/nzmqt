@@ -226,14 +226,14 @@ namespace nzmqt
         // The message is represented as a list of byte arrays representing
         // a message's parts. If the message is not a multi-part message the
         // list will only contain one array.
-        QList<QByteArray> receiveMessage();
+        QList<QByteArray> receiveMessage(ReceiveFlags flags_ = RCV_NOBLOCK);
 
         // Receives all messages currently available.
         // Each message is represented as a list of byte arrays representing the messages
         // and their parts in case of multi-part messages. If a message isn't a multi-part
         // message the corresponding byte array list will only contain one element.
         // Note that this method won't work with REQ-REP protocol.
-        QList< QList<QByteArray> > receiveMessages();
+        QList< QList<QByteArray> > receiveMessages(ReceiveFlags flags_ = RCV_NOBLOCK);
 
         qintptr fileDescriptor() const;
 
