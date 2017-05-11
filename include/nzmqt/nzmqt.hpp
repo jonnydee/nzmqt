@@ -161,10 +161,12 @@ namespace nzmqt
             OPT_RCVMORE = ZMQ_RCVMORE,
             OPT_FD = ZMQ_FD,
             OPT_EVENTS = ZMQ_EVENTS,
+            OPT_MAXMSGSIZE = ZMQ_MAXMSGSIZE,
 
             // Set only.
             OPT_SUBSCRIBE = ZMQ_SUBSCRIBE,
             OPT_UNSUBSCRIBE = ZMQ_UNSUBSCRIBE,
+            OPT_IMMEDIATE = ZMQ_IMMEDIATE,
 
             // Get and set.
             OPT_AFFINITY = ZMQ_AFFINITY,
@@ -178,7 +180,12 @@ namespace nzmqt
             OPT_RECONNECT_IVL_MAX = ZMQ_RECONNECT_IVL_MAX,
             OPT_BACKLOG = ZMQ_BACKLOG,
             OPT_SNDHWM = ZMQ_SNDHWM,
-            OPT_RCVHWM = ZMQ_RCVHWM
+            OPT_RCVHWM = ZMQ_RCVHWM,
+            OPT_SNDTIMEO = ZMQ_SNDTIMEO,
+            OPT_RCVTIMEO = ZMQ_RCVTIMEO,
+            OPT_IPV6 = ZMQ_IPV6,
+            OPT_CONFLATE = ZMQ_CONFLATE,
+            OPT_TOS = ZMQ_TOS
         };
 
         ~ZMQSocket();
