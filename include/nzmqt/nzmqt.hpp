@@ -424,13 +424,13 @@ namespace nzmqt
         int getInterval() const;
 
         // Starts the polling process by scheduling a call to the 'run()' method into Qt's event loop.
-        void start();
+        void start() override;
 
         // Stops the polling process in the sense that no further 'run()' calls will be scheduled into
         // Qt's event loop.
-        void stop();
+        void stop() override;
 
-        bool isStopped() const;
+        bool isStopped() const override;
 
     public slots:
         // If the polling process is not stopped (by a previous call to the 'stop()' method) this
@@ -451,13 +451,13 @@ namespace nzmqt
         void pollError(int errorNum, const QString& errorMsg);
 
     protected:
-        PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_);
+        PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_) override;
 
         // Add the given socket to list list of poll-items.
-        void registerSocket(ZMQSocket* socket_);
+        void registerSocket(ZMQSocket* socket_) override;
 
         // Remove the given socket object from the list of poll-items.
-        void unregisterSocket(ZMQSocket* socket_);
+        void unregisterSocket(ZMQSocket* socket_) override;
 
     private:
         typedef QVector<pollitem_t> PollItems;
@@ -511,11 +511,11 @@ namespace nzmqt
     public:
         SocketNotifierZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
-        void start();
+        void start() override;
 
-        void stop();
+        void stop() override;
 
-        bool isStopped() const;
+        bool isStopped() const override;
 
     signals:
         // This signal will be emitted by the socket notifier callback if a call
