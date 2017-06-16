@@ -61,11 +61,6 @@ NZMQT_INLINE void ZMQMessage::move(ZMQMessage* msg_)
     super::move(static_cast<zmq::message_t*>(msg_));
 }
 
-NZMQT_INLINE void ZMQMessage::copy(ZMQMessage* msg_)
-{
-    super::copy(msg_);
-}
-
 NZMQT_INLINE void ZMQMessage::clone(ZMQMessage* msg_)
 {
     rebuild(msg_->size());

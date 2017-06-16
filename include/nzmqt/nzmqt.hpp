@@ -87,7 +87,7 @@ namespace nzmqt
 
         void move(ZMQMessage* msg_);
 
-        void copy(ZMQMessage* msg_);
+        using super::copy;
 
         using super::more;
 
