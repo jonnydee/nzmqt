@@ -587,10 +587,10 @@ NZMQT_INLINE SocketNotifierZMQSocket::SocketNotifierZMQSocket(ZMQContext* contex
     qintptr fd = fileDescriptor();
 
     socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-    QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
+    QObject::connect(socketNotifyRead_, &QSocketNotifier::activated, this, &SocketNotifierZMQSocket::socketReadActivity);
 
     socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
-    QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
+    QObject::connect(socketNotifyWrite_, &QSocketNotifier::activated, this, &SocketNotifierZMQSocket::socketWriteActivity);
 }
 
 NZMQT_INLINE SocketNotifierZMQSocket::~SocketNotifierZMQSocket()
@@ -674,8 +674,8 @@ NZMQT_INLINE bool SocketNotifierZMQContext::isStopped() const
 NZMQT_INLINE SocketNotifierZMQSocket* SocketNotifierZMQContext::createSocketInternal(ZMQSocket::Type type_)
 {
     SocketNotifierZMQSocket *socket = new SocketNotifierZMQSocket(this, type_);
-    connect(socket, SIGNAL(notifierError(int,QString)),
-            this, SIGNAL(notifierError(int,QString)));
+    connect(socket, &SocketNotifierZMQSocket::notifierError,
+            this, &SocketNotifierZMQContext::notifierError);
     return socket;
 }
 
