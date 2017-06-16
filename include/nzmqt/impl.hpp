@@ -50,21 +50,6 @@ namespace nzmqt
  * ZMQMessage
  */
 
-NZMQT_INLINE ZMQMessage::ZMQMessage()
-    : super()
-{
-}
-
-NZMQT_INLINE ZMQMessage::ZMQMessage(size_t size_)
-    : super(size_)
-{
-}
-
-NZMQT_INLINE ZMQMessage::ZMQMessage(void* data_, size_t size_, free_fn *ffn_, void* hint_)
-    : super(data_, size_, ffn_, hint_)
-{
-}
-
 NZMQT_INLINE ZMQMessage::ZMQMessage(const QByteArray& b)
     : super(b.size())
 {

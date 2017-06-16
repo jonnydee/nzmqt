@@ -76,11 +76,10 @@ namespace nzmqt
         typedef zmq::message_t super;
 
     public:
-        ZMQMessage();
+        ZMQMessage() = default;
 
-        ZMQMessage(size_t size_);
-
-        ZMQMessage(void* data_, size_t size_, free_fn *ffn_, void* hint_ = 0);
+        // Forward the constructors from the super-class as is.
+        using super::super;
 
         ZMQMessage(const QByteArray& b);
 
