@@ -144,13 +144,13 @@ namespace nzmqt
         enum SendFlag
         {
             SND_MORE = ZMQ_SNDMORE,
-            SND_NOBLOCK = ZMQ_DONTWAIT
+            SND_DONTWAIT = ZMQ_DONTWAIT
         };
         Q_DECLARE_FLAGS(SendFlags, SendFlag)
 
         enum ReceiveFlag
         {
-            RCV_NOBLOCK = ZMQ_DONTWAIT
+            RCV_DONTWAIT = ZMQ_DONTWAIT
         };
         Q_DECLARE_FLAGS(ReceiveFlags, ReceiveFlag)
 
@@ -224,23 +224,23 @@ namespace nzmqt
 
         void disconnectFrom(const char* addr_);
 
-        bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_NOBLOCK);
+        bool sendMessage(ZMQMessage& msg_, SendFlags flags_ = SND_DONTWAIT);
 
         // Receives a message or a message part.
-        bool receiveMessage(ZMQMessage* msg_, ReceiveFlags flags_ = RCV_NOBLOCK);
+        bool receiveMessage(ZMQMessage* msg_, ReceiveFlags flags_ = RCV_DONTWAIT);
 
         // Receives a message.
         // The message is represented as a list of byte arrays representing
         // a message's parts. If the message is not a multi-part message the
         // list will only contain one array.
-        QList<QByteArray> receiveMessage(ReceiveFlags flags_ = RCV_NOBLOCK);
+        QList<QByteArray> receiveMessage(ReceiveFlags flags_ = RCV_DONTWAIT);
 
         // Receives all messages currently available.
         // Each message is represented as a list of byte arrays representing the messages
         // and their parts in case of multi-part messages. If a message isn't a multi-part
         // message the corresponding byte array list will only contain one element.
         // Note that this method won't work with REQ-REP protocol.
-        QList< QList<QByteArray> > receiveMessages(ReceiveFlags flags_ = RCV_NOBLOCK);
+        QList< QList<QByteArray> > receiveMessages(ReceiveFlags flags_ = RCV_DONTWAIT);
 
         qintptr fileDescriptor() const;
 
@@ -287,12 +287,12 @@ namespace nzmqt
         void close();
 
         // Send the given bytes as a single-part message.
-        bool sendMessage(const QByteArray& bytes_, nzmqt::ZMQSocket::SendFlags flags_ = SND_NOBLOCK);
+        bool sendMessage(const QByteArray& bytes_, nzmqt::ZMQSocket::SendFlags flags_ = SND_DONTWAIT);
 
         // Interprets the provided list of byte arrays as a multi-part message
         // and sends them accordingly.
         // If an empty list is provided this method doesn't do anything and returns trua.
-        bool sendMessage(const QList<QByteArray>& msg_, nzmqt::ZMQSocket::SendFlags flags_ = SND_NOBLOCK);
+        bool sendMessage(const QList<QByteArray>& msg_, nzmqt::ZMQSocket::SendFlags flags_ = SND_DONTWAIT);
 
 
     protected:
