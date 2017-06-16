@@ -40,6 +40,8 @@
 #include <QRunnable>
 #include <QVector>
 
+#include <type_traits>
+
 // Define default context implementation to be used.
 #ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
     #define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION PollingZMQContext
@@ -76,11 +78,10 @@ namespace nzmqt
         typedef zmq::message_t super;
 
     public:
-        ZMQMessage();
+        ZMQMessage() = default;
 
-        ZMQMessage(size_t size_);
-
-        ZMQMessage(void* data_, size_t size_, free_fn *ffn_, void* hint_ = 0);
+        // Forward the constructors from the super-class as is.
+        using super::super;
 
         ZMQMessage(const QByteArray& b);
 
@@ -88,7 +89,7 @@ namespace nzmqt
 
         void move(ZMQMessage* msg_);
 
-        void copy(ZMQMessage* msg_);
+        using super::copy;
 
         using super::more;
 
@@ -198,13 +199,11 @@ namespace nzmqt
 
         void setOption(Option optName_, const QByteArray& bytes_);
 
-        void setOption(Option optName_, qint32 value_);
-
-        void setOption(Option optName_, quint32 value_);
-
-        void setOption(Option optName_, qint64 value_);
-
-        void setOption(Option optName_, quint64 value_);
+        template<typename INT_T, typename = typename std::enable_if<std::is_integral<INT_T>::value>::type>
+        void setOption(Option optName_, INT_T value_)
+        {
+            setOption(optName_, &value_, sizeof(value_));
+        }
 
         void getOption(Option option_, void *optval_, size_t *optvallen_) const;
 
@@ -319,7 +318,7 @@ namespace nzmqt
         friend class ZMQSocket;
 
     public:
-        ZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
+        ZMQContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         // Deleting children is necessary, because otherwise the children are deleted after the context
         // which results in a blocking state. So we delete the children before the zmq::context_t
@@ -334,7 +333,7 @@ namespace nzmqt
         // ownership later on). Make sure, however, that the socket's parent
         // belongs to the same thread as the socket instance itself (as it is required
         // by Qt). Otherwise, you will encounter strange errors.
-        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_ = 0);
+        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_ = nullptr);
 
         // Start watching for incoming messages.
         virtual void start() = 0;
@@ -414,7 +413,7 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        PollingZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
+        PollingZMQContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         // Sets the polling interval.
         // Note that the interval does not denote the time the zmq::poll() function will
@@ -425,13 +424,13 @@ namespace nzmqt
         int getInterval() const;
 
         // Starts the polling process by scheduling a call to the 'run()' method into Qt's event loop.
-        void start();
+        void start() override;
 
         // Stops the polling process in the sense that no further 'run()' calls will be scheduled into
         // Qt's event loop.
-        void stop();
+        void stop() override;
 
-        bool isStopped() const;
+        bool isStopped() const override;
 
     public slots:
         // If the polling process is not stopped (by a previous call to the 'stop()' method) this
@@ -452,13 +451,13 @@ namespace nzmqt
         void pollError(int errorNum, const QString& errorMsg);
 
     protected:
-        PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_);
+        PollingZMQSocket* createSocketInternal(ZMQSocket::Type type_) override;
 
         // Add the given socket to list list of poll-items.
-        void registerSocket(ZMQSocket* socket_);
+        void registerSocket(ZMQSocket* socket_) override;
 
         // Remove the given socket object from the list of poll-items.
-        void unregisterSocket(ZMQSocket* socket_);
+        void unregisterSocket(ZMQSocket* socket_) override;
 
     private:
         typedef QVector<pollitem_t> PollItems;
@@ -510,13 +509,13 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        SocketNotifierZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
+        SocketNotifierZMQContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
-        void start();
+        void start() override;
 
-        void stop();
+        void stop() override;
 
-        bool isStopped() const;
+        bool isStopped() const override;
 
     signals:
         // This signal will be emitted by the socket notifier callback if a call
@@ -527,7 +526,7 @@ namespace nzmqt
         SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_);
     };
 
-    NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
+    NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
     {
         return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(parent_, io_threads_);
     }

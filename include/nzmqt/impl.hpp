@@ -50,21 +50,6 @@ namespace nzmqt
  * ZMQMessage
  */
 
-NZMQT_INLINE ZMQMessage::ZMQMessage()
-    : super()
-{
-}
-
-NZMQT_INLINE ZMQMessage::ZMQMessage(size_t size_)
-    : super(size_)
-{
-}
-
-NZMQT_INLINE ZMQMessage::ZMQMessage(void* data_, size_t size_, free_fn *ffn_, void* hint_)
-    : super(data_, size_, ffn_, hint_)
-{
-}
-
 NZMQT_INLINE ZMQMessage::ZMQMessage(const QByteArray& b)
     : super(b.size())
 {
@@ -74,11 +59,6 @@ NZMQT_INLINE ZMQMessage::ZMQMessage(const QByteArray& b)
 NZMQT_INLINE void ZMQMessage::move(ZMQMessage* msg_)
 {
     super::move(static_cast<zmq::message_t*>(msg_));
-}
-
-NZMQT_INLINE void ZMQMessage::copy(ZMQMessage* msg_)
-{
-    super::copy(msg_);
 }
 
 NZMQT_INLINE void ZMQMessage::clone(ZMQMessage* msg_)
@@ -99,7 +79,7 @@ NZMQT_INLINE QByteArray ZMQMessage::toByteArray()
  */
 
 NZMQT_INLINE ZMQSocket::ZMQSocket(ZMQContext* context_, Type type_)
-    : qsuper(0)
+    : qsuper(nullptr)
     , zmqsuper(*context_, type_)
     , m_context(context_)
 {
@@ -117,7 +97,7 @@ NZMQT_INLINE void ZMQSocket::close()
     if (m_context)
     {
         m_context->unregisterSocket(this);
-        m_context = 0;
+        m_context = nullptr;
     }
     zmqsuper::close();
 }
@@ -135,26 +115,6 @@ NZMQT_INLINE void ZMQSocket::setOption(Option optName_, const char* str_)
 NZMQT_INLINE void ZMQSocket::setOption(Option optName_, const QByteArray& bytes_)
 {
     setOption(optName_, bytes_.constData(), bytes_.size());
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, qint32 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, quint32 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, qint64 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, quint64 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
 }
 
 NZMQT_INLINE void ZMQSocket::getOption(Option option_, void *optval_, size_t *optvallen_) const
@@ -256,7 +216,7 @@ NZMQT_INLINE QList< QList<QByteArray> > ZMQSocket::receiveMessages(ReceiveFlags 
     QList<QByteArray> parts = receiveMessage(flags_);
     while (!parts.isEmpty())
     {
-        ret += parts;
+        ret += std::move(parts);
 
         parts = receiveMessage(flags_);
     }
@@ -384,9 +344,9 @@ NZMQT_INLINE ZMQContext::ZMQContext(QObject* parent_, int io_threads_)
 NZMQT_INLINE ZMQContext::~ZMQContext()
 {
 //    qDebug() << Q_FUNC_INFO << "Sockets:" << m_sockets;
-    foreach (ZMQSocket* socket, m_sockets)
+    for(ZMQSocket* socket : registeredSockets())
     {
-        socket->m_context = 0;
+        socket->m_context = nullptr;
         // As stated by 0MQ, close() must ONLY be called from the thread
         // owning the socket. So we use 'invokeMethod' which (hopefully)
         // results in a 'close' call from within the socket's thread.
@@ -409,15 +369,13 @@ NZMQT_INLINE void ZMQContext::registerSocket(ZMQSocket* socket_)
 
 NZMQT_INLINE void ZMQContext::unregisterSocket(ZMQSocket* socket_)
 {
-    Sockets::iterator soIt = m_sockets.begin();
-    while (soIt != m_sockets.end())
+    for(Sockets::iterator soIt = m_sockets.begin(); soIt != m_sockets.end(); ++soIt)
     {
         if (*soIt == socket_)
         {
             m_sockets.erase(soIt);
             break;
         }
-        ++soIt;
     }
 }
 
@@ -542,8 +500,8 @@ NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
             if (poIt->revents & ZMQSocket::EVT_POLLIN)
             {
                 PollingZMQSocket* socket = static_cast<PollingZMQSocket*>(*soIt);
-                QList<QByteArray> message = socket->receiveMessage();
-                socket->onMessageReceived(message);
+                QList<QByteArray> && message = socket->receiveMessage();
+                socket->onMessageReceived(std::move(message));
                 i++;
             }
             ++soIt;
@@ -602,10 +560,10 @@ NZMQT_INLINE SocketNotifierZMQSocket::SocketNotifierZMQSocket(ZMQContext* contex
     qintptr fd = fileDescriptor();
 
     socketNotifyRead_ = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-    QObject::connect(socketNotifyRead_, SIGNAL(activated(int)), this, SLOT(socketReadActivity()));
+    QObject::connect(socketNotifyRead_, &QSocketNotifier::activated, this, &SocketNotifierZMQSocket::socketReadActivity);
 
     socketNotifyWrite_ = new QSocketNotifier(fd, QSocketNotifier::Write, this);
-    QObject::connect(socketNotifyWrite_, SIGNAL(activated(int)), this, SLOT(socketWriteActivity()));
+    QObject::connect(socketNotifyWrite_, &QSocketNotifier::activated, this, &SocketNotifierZMQSocket::socketWriteActivity);
 }
 
 NZMQT_INLINE SocketNotifierZMQSocket::~SocketNotifierZMQSocket()
@@ -628,7 +586,7 @@ NZMQT_INLINE void SocketNotifierZMQSocket::socketReadActivity()
     {
         while(isConnected() && (events() & EVT_POLLIN))
         {
-            QList<QByteArray> message = receiveMessage();
+            const QList<QByteArray> & message = receiveMessage();
             emit messageReceived(message);
         }
     }
@@ -649,7 +607,7 @@ NZMQT_INLINE void SocketNotifierZMQSocket::socketWriteActivity()
     {
         while (isConnected() && (events() & EVT_POLLIN))
         {
-            QList<QByteArray> message = receiveMessage();
+            const QList<QByteArray> & message = receiveMessage();
             emit messageReceived(message);
         }
     }
@@ -689,8 +647,8 @@ NZMQT_INLINE bool SocketNotifierZMQContext::isStopped() const
 NZMQT_INLINE SocketNotifierZMQSocket* SocketNotifierZMQContext::createSocketInternal(ZMQSocket::Type type_)
 {
     SocketNotifierZMQSocket *socket = new SocketNotifierZMQSocket(this, type_);
-    connect(socket, SIGNAL(notifierError(int,QString)),
-            this, SIGNAL(notifierError(int,QString)));
+    connect(socket, &SocketNotifierZMQSocket::notifierError,
+            this, &SocketNotifierZMQContext::notifierError);
     return socket;
 }
 
