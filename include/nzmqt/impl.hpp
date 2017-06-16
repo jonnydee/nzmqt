@@ -236,7 +236,7 @@ NZMQT_INLINE QList< QList<QByteArray> > ZMQSocket::receiveMessages(ReceiveFlags 
     QList<QByteArray> parts = receiveMessage(flags_);
     while (!parts.isEmpty())
     {
-        ret += parts;
+        ret += std::move(parts);
 
         parts = receiveMessage(flags_);
     }
@@ -520,8 +520,8 @@ NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
             if (poIt->revents & ZMQSocket::EVT_POLLIN)
             {
                 PollingZMQSocket* socket = static_cast<PollingZMQSocket*>(*soIt);
-                QList<QByteArray> message = socket->receiveMessage();
-                socket->onMessageReceived(message);
+                QList<QByteArray> && message = socket->receiveMessage();
+                socket->onMessageReceived(std::move(message));
                 i++;
             }
             ++soIt;
@@ -606,7 +606,7 @@ NZMQT_INLINE void SocketNotifierZMQSocket::socketReadActivity()
     {
         while(isConnected() && (events() & EVT_POLLIN))
         {
-            QList<QByteArray> message = receiveMessage();
+            const QList<QByteArray> & message = receiveMessage();
             emit messageReceived(message);
         }
     }
@@ -627,7 +627,7 @@ NZMQT_INLINE void SocketNotifierZMQSocket::socketWriteActivity()
     {
         while (isConnected() && (events() & EVT_POLLIN))
         {
-            QList<QByteArray> message = receiveMessage();
+            const QList<QByteArray> & message = receiveMessage();
             emit messageReceived(message);
         }
     }
