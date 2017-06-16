@@ -219,10 +219,15 @@ NZMQT_INLINE bool ZMQSocket::sendMessage(const QList<QByteArray>& msg_, SendFlag
     for (i = 0; i < msg_.size() - 1; i++)
     {
         if (!sendMessage(msg_[i], flags_ | SND_MORE))
+        {
             return false;
+        }
     }
+
     if (i < msg_.size())
+    {
         return sendMessage(msg_[i], flags_);
+    }
 
     return true;
 }
@@ -243,7 +248,9 @@ NZMQT_INLINE QList<QByteArray> ZMQSocket::receiveMessage(ReceiveFlags flags_)
         msg.rebuild();
 
         if (!hasMoreMessageParts())
+        {
             break;
+        }
     }
 
     return parts;
@@ -504,7 +511,9 @@ NZMQT_INLINE bool PollingZMQContext::isStopped() const
 NZMQT_INLINE void PollingZMQContext::run()
 {
     if (m_stopped)
+    {
         return;
+    }
 
     try
     {
@@ -517,7 +526,9 @@ NZMQT_INLINE void PollingZMQContext::run()
     }
 
     if (!m_stopped)
+    {
         QTimer::singleShot(m_interval, this, SLOT(run()));
+    }
 }
 
 NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
@@ -527,12 +538,16 @@ NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
         QMutexLocker lock(&m_pollItemsMutex);
 
         if (m_pollItems.empty())
+        {
             return;
+        }
 
         cnt = zmq::poll(&m_pollItems[0], m_pollItems.size(), timeout_);
         Q_ASSERT_X(cnt >= 0, Q_FUNC_INFO, "A value < 0 should be reflected by an exception.");
         if (0 == cnt)
+        {
             return;
+        }
 
         PollItems::iterator poIt = m_pollItems.begin();
         ZMQContext::Sockets::const_iterator soIt = registeredSockets().begin();

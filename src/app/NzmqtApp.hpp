@@ -101,7 +101,9 @@ protected slots:
             if ("pubsub-publisher" == command)
             {
                 if (args.size() < 4)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString address = args[2];
                 QString topic = args[3];
@@ -110,7 +112,9 @@ protected slots:
             else if ("pubsub-subscriber" == command)
             {
                 if (args.size() < 4)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString address = args[2];
                 QString topic = args[3];
@@ -119,7 +123,9 @@ protected slots:
             else if ("reqrep-replier" == command)
             {
                 if (args.size() < 4)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString address = args[2];
                 QString responseMsg = args[3];
@@ -128,7 +134,9 @@ protected slots:
             else if ("reqrep-requester" == command)
             {
                 if (args.size() < 4)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString address = args[2];
                 QString requestMsg = args[3];
@@ -137,7 +145,9 @@ protected slots:
             else if ("pushpull-ventilator" == command)
             {
                 if (args.size() < 5)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
@@ -153,7 +163,9 @@ protected slots:
             else if ("pushpull-worker" == command)
             {
                 if (args.size() < 4)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString ventilatorAddress = args[2];
                 QString sinkAddress = args[3];
@@ -162,7 +174,9 @@ protected slots:
             else if ("pushpull-sink" == command)
             {
                 if (args.size() < 3)
+                {
                     throw std::runtime_error("Mandatory argument(s) missing!");
+                }
 
                 QString sinkAddress = args[2];
                 commandImpl = new pushpull::Sink(*context, sinkAddress, this);
