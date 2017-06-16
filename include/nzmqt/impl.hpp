@@ -364,7 +364,7 @@ NZMQT_INLINE ZMQContext::ZMQContext(QObject* parent_, int io_threads_)
 NZMQT_INLINE ZMQContext::~ZMQContext()
 {
 //    qDebug() << Q_FUNC_INFO << "Sockets:" << m_sockets;
-    foreach (ZMQSocket* socket, m_sockets)
+    for(ZMQSocket* socket : registeredSockets())
     {
         socket->m_context = nullptr;
         // As stated by 0MQ, close() must ONLY be called from the thread
@@ -389,15 +389,13 @@ NZMQT_INLINE void ZMQContext::registerSocket(ZMQSocket* socket_)
 
 NZMQT_INLINE void ZMQContext::unregisterSocket(ZMQSocket* socket_)
 {
-    Sockets::iterator soIt = m_sockets.begin();
-    while (soIt != m_sockets.end())
+    for(Sockets::iterator soIt = m_sockets.begin(); soIt != m_sockets.end(); ++soIt)
     {
         if (*soIt == socket_)
         {
             m_sockets.erase(soIt);
             break;
         }
-        ++soIt;
     }
 }
 
