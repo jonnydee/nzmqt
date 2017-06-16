@@ -84,7 +84,7 @@ NZMQT_INLINE QByteArray ZMQMessage::toByteArray()
  */
 
 NZMQT_INLINE ZMQSocket::ZMQSocket(ZMQContext* context_, Type type_)
-    : qsuper(0)
+    : qsuper(nullptr)
     , zmqsuper(*context_, type_)
     , m_context(context_)
 {
@@ -102,7 +102,7 @@ NZMQT_INLINE void ZMQSocket::close()
     if (m_context)
     {
         m_context->unregisterSocket(this);
-        m_context = 0;
+        m_context = nullptr;
     }
     zmqsuper::close();
 }
@@ -371,7 +371,7 @@ NZMQT_INLINE ZMQContext::~ZMQContext()
 //    qDebug() << Q_FUNC_INFO << "Sockets:" << m_sockets;
     foreach (ZMQSocket* socket, m_sockets)
     {
-        socket->m_context = 0;
+        socket->m_context = nullptr;
         // As stated by 0MQ, close() must ONLY be called from the thread
         // owning the socket. So we use 'invokeMethod' which (hopefully)
         // results in a 'close' call from within the socket's thread.

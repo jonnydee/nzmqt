@@ -318,7 +318,7 @@ namespace nzmqt
         friend class ZMQSocket;
 
     public:
-        ZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
+        ZMQContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         // Deleting children is necessary, because otherwise the children are deleted after the context
         // which results in a blocking state. So we delete the children before the zmq::context_t
@@ -333,7 +333,7 @@ namespace nzmqt
         // ownership later on). Make sure, however, that the socket's parent
         // belongs to the same thread as the socket instance itself (as it is required
         // by Qt). Otherwise, you will encounter strange errors.
-        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_ = 0);
+        ZMQSocket* createSocket(ZMQSocket::Type type_, QObject* parent_ = nullptr);
 
         // Start watching for incoming messages.
         virtual void start() = 0;
@@ -413,7 +413,7 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        PollingZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
+        PollingZMQContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         // Sets the polling interval.
         // Note that the interval does not denote the time the zmq::poll() function will
@@ -509,7 +509,7 @@ namespace nzmqt
         typedef ZMQContext super;
 
     public:
-        SocketNotifierZMQContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
+        SocketNotifierZMQContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS);
 
         void start() override;
 
@@ -526,7 +526,7 @@ namespace nzmqt
         SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_);
     };
 
-    NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = 0, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
+    NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
     {
         return new NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION(parent_, io_threads_);
     }
