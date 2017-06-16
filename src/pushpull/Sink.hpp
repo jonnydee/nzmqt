@@ -85,15 +85,21 @@ protected slots:
             batchStarted(numberOfWorkItems_);
 
             if (numberOfWorkItems_)
+            {
                 return;
+            }
         }
 
         if (numberOfWorkItems_ > 0)
         {
             if (numberOfWorkItems_ % 10 == 0)
+            {
                 qDebug() << numberOfWorkItems_;
+            }
             else
+            {
                 qDebug() << ".";
+            }
 
             --numberOfWorkItems_;
             emit workItemResultReceived();
