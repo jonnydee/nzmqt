@@ -40,6 +40,8 @@
 #include <QRunnable>
 #include <QVector>
 
+#include <type_traits>
+
 // Define default context implementation to be used.
 #ifndef NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION
     #define NZMQT_DEFAULT_ZMQCONTEXT_IMPLEMENTATION PollingZMQContext
@@ -197,13 +199,11 @@ namespace nzmqt
 
         void setOption(Option optName_, const QByteArray& bytes_);
 
-        void setOption(Option optName_, qint32 value_);
-
-        void setOption(Option optName_, quint32 value_);
-
-        void setOption(Option optName_, qint64 value_);
-
-        void setOption(Option optName_, quint64 value_);
+        template<typename INT_T, typename = typename std::enable_if<std::is_integral<INT_T>::value>::type>
+        void setOption(Option optName_, INT_T value_)
+        {
+            setOption(optName_, &value_, sizeof(value_));
+        }
 
         void getOption(Option option_, void *optval_, size_t *optvallen_) const;
 

@@ -117,26 +117,6 @@ NZMQT_INLINE void ZMQSocket::setOption(Option optName_, const QByteArray& bytes_
     setOption(optName_, bytes_.constData(), bytes_.size());
 }
 
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, qint32 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, quint32 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, qint64 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
-NZMQT_INLINE void ZMQSocket::setOption(Option optName_, quint64 value_)
-{
-    setOption(optName_, &value_, sizeof(value_));
-}
-
 NZMQT_INLINE void ZMQSocket::getOption(Option option_, void *optval_, size_t *optvallen_) const
 {
     const_cast<ZMQSocket*>(this)->getsockopt(option_, optval_, optvallen_);
