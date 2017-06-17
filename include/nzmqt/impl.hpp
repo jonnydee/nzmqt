@@ -413,12 +413,6 @@ NZMQT_INLINE PollingZMQSocket::PollingZMQSocket(PollingZMQContext* context_, Typ
 {
 }
 
-NZMQT_INLINE void PollingZMQSocket::onMessageReceived(const QList<QByteArray>& message)
-{
-    emit messageReceived(message);
-}
-
-
 
 /*
  * PollingZMQContext
@@ -501,7 +495,7 @@ NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
             {
                 PollingZMQSocket* socket = static_cast<PollingZMQSocket*>(*soIt);
                 QList<QByteArray> && message = socket->receiveMessage();
-                socket->onMessageReceived(std::move(message));
+                socket->messageReceived(std::move(message));
                 i++;
             }
             ++soIt;
