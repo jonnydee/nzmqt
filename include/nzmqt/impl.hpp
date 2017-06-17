@@ -446,7 +446,7 @@ NZMQT_INLINE int PollingZMQContext::getInterval() const
 NZMQT_INLINE void PollingZMQContext::start()
 {
     m_stopped = false;
-    QTimer::singleShot(0, this, SLOT(run()));
+    QTimer::singleShot(0, this, &PollingZMQContext::run);
 }
 
 NZMQT_INLINE void PollingZMQContext::stop()
@@ -475,7 +475,7 @@ NZMQT_INLINE void PollingZMQContext::run()
     }
 
     if (!m_stopped)
-        QTimer::singleShot(m_interval, this, SLOT(run()));
+        QTimer::singleShot(m_interval, this, &PollingZMQContext::run);
 }
 
 NZMQT_INLINE void PollingZMQContext::poll(long timeout_)
