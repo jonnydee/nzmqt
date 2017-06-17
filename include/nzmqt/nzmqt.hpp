@@ -400,10 +400,6 @@ namespace nzmqt
 
     protected:
         PollingZMQSocket(PollingZMQContext* context_, Type type_);
-
-        // This method is called by the socket's context object in order
-        // to signal a new received message.
-        void onMessageReceived(const QList<QByteArray>& message);
     };
 
     class NZMQT_API PollingZMQContext : public ZMQContext, public QRunnable
