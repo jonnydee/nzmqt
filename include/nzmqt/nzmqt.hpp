@@ -169,6 +169,8 @@ namespace nzmqt
             OPT_SUBSCRIBE = ZMQ_SUBSCRIBE,
             OPT_UNSUBSCRIBE = ZMQ_UNSUBSCRIBE,
             OPT_IMMEDIATE = ZMQ_IMMEDIATE,
+            OPT_REQ_CORRELATE = ZMQ_REQ_CORRELATE,
+            OPT_REQ_RELAXED = ZMQ_REQ_RELAXED,
 
             // Get and set.
             OPT_AFFINITY = ZMQ_AFFINITY,
