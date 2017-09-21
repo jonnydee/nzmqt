@@ -168,9 +168,15 @@ namespace nzmqt
             // Set only.
             OPT_SUBSCRIBE = ZMQ_SUBSCRIBE,
             OPT_UNSUBSCRIBE = ZMQ_UNSUBSCRIBE,
+#ifdef ZMQ_IMMEDIATE
             OPT_IMMEDIATE = ZMQ_IMMEDIATE,
+#endif
+#ifdef ZMQ_REQ_CORRELATE
             OPT_REQ_CORRELATE = ZMQ_REQ_CORRELATE,
+#endif
+#ifdef ZMQ_REQ_RELAXED
             OPT_REQ_RELAXED = ZMQ_REQ_RELAXED,
+#endif
 
             // Get and set.
             OPT_AFFINITY = ZMQ_AFFINITY,
@@ -187,9 +193,15 @@ namespace nzmqt
             OPT_RCVHWM = ZMQ_RCVHWM,
             OPT_SNDTIMEO = ZMQ_SNDTIMEO,
             OPT_RCVTIMEO = ZMQ_RCVTIMEO,
+#ifdef ZMQ_IPV6
             OPT_IPV6 = ZMQ_IPV6,
+#endif
+#ifdef ZMQ_CONFLATE
             OPT_CONFLATE = ZMQ_CONFLATE,
-            OPT_TOS = ZMQ_TOS
+#endif
+#ifdef ZMQ_TOS
+            OPT_TOS = ZMQ_TOS,
+#endif
         };
 
         ~ZMQSocket();
