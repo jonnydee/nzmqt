@@ -135,7 +135,7 @@ namespace nzmqt
             TYP_XSUB = ZMQ_XSUB
         };
 
-        enum Event
+        enum Event : int
         {
             EVT_POLLIN = ZMQ_POLLIN,
             EVT_POLLOUT = ZMQ_POLLOUT,
@@ -143,14 +143,14 @@ namespace nzmqt
         };
         Q_DECLARE_FLAGS(Events, Event)
 
-        enum SendFlag
+        enum SendFlag : int
         {
             SND_MORE = ZMQ_SNDMORE,
             SND_DONTWAIT = ZMQ_DONTWAIT
         };
         Q_DECLARE_FLAGS(SendFlags, SendFlag)
 
-        enum ReceiveFlag
+        enum ReceiveFlag : int
         {
             RCV_DONTWAIT = ZMQ_DONTWAIT
         };
