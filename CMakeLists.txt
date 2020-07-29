@@ -30,7 +30,7 @@ add_library(nzmqt SHARED "")
 target_include_directories(
     nzmqt
     PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${cppzmq_INCLUDE_DIR}
     ${Qt5Core_INCLUDE_DIRS}
