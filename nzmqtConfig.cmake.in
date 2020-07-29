@@ -1,0 +1,21 @@
+# nzmqt cmake module
+#
+# The following import targets are created
+# ::nzmqt
+#
+# This module sets the following variables in your project::
+#
+# nzmqt_FOUND - true if nzmqt found on the system
+# nzmqt_INCLUDE_DIRS - the directories containing nzmqt headers
+# nzmqt_LIBRARIES - the libraries needed for dynamic linking
+set(nzmqt_VERSION 3.2.1)
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_package(cppzmq REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Core)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+get_target_property(nzmqt_INCLUDE_DIRS nzmqt INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(_nzmqt_shared_libs nzmqt INTERFACE_LINK_LIBRARIES)
+list(APPEND nzmqt_LIBRARIES nzmqt ${_nzmqt_shared_libs})
