@@ -506,11 +506,9 @@ namespace nzmqt
 
     protected slots:
         void socketReadActivity();
-        void socketWriteActivity();
 
     private:
         QSocketNotifier *socketNotifyRead_;
-        QSocketNotifier *socketNotifyWrite_;
     };
 
     class NZMQT_API SocketNotifierZMQContext : public ZMQContext
