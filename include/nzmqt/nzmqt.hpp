@@ -177,6 +177,7 @@ namespace nzmqt
 #ifdef ZMQ_REQ_RELAXED
             OPT_REQ_RELAXED = ZMQ_REQ_RELAXED,
 #endif
+            OPT_LAST_ENDPOINT = ZMQ_LAST_ENDPOINT,
 
             // Get and set.
             OPT_AFFINITY = ZMQ_AFFINITY,
