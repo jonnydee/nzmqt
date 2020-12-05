@@ -179,13 +179,38 @@ NZMQT_INLINE void ZMQSocket::disconnectFrom(const char* addr_)
 
 NZMQT_INLINE bool ZMQSocket::sendMessage(ZMQMessage& msg_, SendFlags flags_)
 {
-    return send(msg_, flags_);
+    if (!send(msg_, flags_)) {
+        return false;
+    }
+
+    /**
+     * From http://api.zeromq.org/4-3:zmq-getsockopt
+     * --
+     * The returned file descriptor is also used internally by the zmq_send and
+     * zmq_recv functions. As the descriptor is edge triggered, applications
+     * must update the state of ZMQ_EVENTS after each invocation of zmq_send or
+     * zmq_recv. To be more explicit: after calling zmq_send the socket may
+     * become readable (and vice versa) without triggering a read event on the
+     * file descriptor.
+     * --
+     *
+     * SocketNotifierZMQSocket expects the socket file descriptor to trigger a
+     * READ activated event that never comes in certain circumstances. By
+     * checking the events() after calling send, we can catch events the
+     * SocketNotifierZMQSocket might otherwise miss.
+     */
+    while(isConnected() && (events() & EVT_POLLIN))
+    {
+        const QList<QByteArray> & message = receiveMessage();
+        emit messageReceived(message);
+    }
+    return true;
 }
 
 NZMQT_INLINE bool ZMQSocket::sendMessage(const QByteArray& bytes_, SendFlags flags_)
 {
     ZMQMessage msg(bytes_);
-    return send(msg, flags_);
+    return sendMessage(msg, flags_);
 }
 
 NZMQT_INLINE bool ZMQSocket::sendMessage(const QList<QByteArray>& msg_, SendFlags flags_)
