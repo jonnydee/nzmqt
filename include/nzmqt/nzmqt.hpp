@@ -309,6 +309,8 @@ namespace nzmqt
         // If an empty list is provided this method doesn't do anything and returns trua.
         bool sendMessage(const QList<QByteArray>& msg_, nzmqt::ZMQSocket::SendFlags flags_ = SND_DONTWAIT);
 
+        // Slot called internally to query the events() flags from the event loop after a sendMessage call.
+        void checkEvents();
 
     protected:
         ZMQSocket(ZMQContext* context_, Type type_);

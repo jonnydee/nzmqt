@@ -198,13 +198,23 @@ NZMQT_INLINE bool ZMQSocket::sendMessage(ZMQMessage& msg_, SendFlags flags_)
      * READ activated event that never comes in certain circumstances. By
      * checking the events() after calling send, we can catch events the
      * SocketNotifierZMQSocket might otherwise miss.
+     *
+     * Invoking the checkEvents method via a Qt::QueuedConnection ensures that
+     * the events flags are checked within the main event loop. This avoids
+     * pitfalls where receiveMessage signals can cause re-entrant calls to in
+     * handlers.
      */
+    QMetaObject::invokeMethod(this, "checkEvents", Qt::QueuedConnection);
+    return true;
+}
+
+NZMQT_INLINE void ZMQSocket::checkEvents()
+{
     while(isConnected() && (events() & EVT_POLLIN))
     {
         const QList<QByteArray> & message = receiveMessage();
         emit messageReceived(message);
     }
-    return true;
 }
 
 NZMQT_INLINE bool ZMQSocket::sendMessage(const QByteArray& bytes_, SendFlags flags_)
