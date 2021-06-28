@@ -373,7 +373,7 @@ namespace nzmqt
         // Remove the given socket object from the list of registered sockets.
         virtual void unregisterSocket(ZMQSocket* socket_);
 
-        virtual const Sockets& registeredSockets() const;
+        const Sockets& registeredSockets() const;
 
     private:
         Sockets m_sockets;
