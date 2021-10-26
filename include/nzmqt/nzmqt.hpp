@@ -474,7 +474,11 @@ namespace nzmqt
         typedef QVector<pollitem_t> PollItems;
 
         PollItems m_pollItems;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        QRecursiveMutex m_pollItemsMutex;
+#else
         QMutex m_pollItemsMutex;
+#endif
         int m_interval;
         volatile bool m_stopped;
     };
