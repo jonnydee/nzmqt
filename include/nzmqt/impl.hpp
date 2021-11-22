@@ -435,7 +435,9 @@ NZMQT_INLINE PollingZMQSocket::PollingZMQSocket(PollingZMQContext* context_, Typ
 
 NZMQT_INLINE PollingZMQContext::PollingZMQContext(QObject* parent_, int io_threads_)
     : super(parent_, io_threads_)
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     , m_pollItemsMutex(QMutex::Recursive)
+#endif
     , m_interval(NZMQT_POLLINGZMQCONTEXT_DEFAULT_POLLINTERVAL)
     , m_stopped(false)
 {

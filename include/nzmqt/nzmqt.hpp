@@ -447,7 +447,7 @@ namespace nzmqt
         // If the polling process is not stopped (by a previous call to the 'stop()' method) this
         // method will call the 'poll()' method once and re-schedule a subsequent call to this method
         // using the current polling interval.
-        void run();
+        void run() override;
 
         // This method will poll on all currently available poll-items (known ZMQ sockets)
         // using the given timeout to wait for incoming messages. Note that this timeout has
@@ -474,7 +474,11 @@ namespace nzmqt
         typedef QVector<pollitem_t> PollItems;
 
         PollItems m_pollItems;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        QRecursiveMutex m_pollItemsMutex;
+#else
         QMutex m_pollItemsMutex;
+#endif
         int m_interval;
         volatile bool m_stopped;
     };
@@ -534,7 +538,7 @@ namespace nzmqt
         void notifierError(int errorNum, const QString& errorMsg);
 
     protected:
-        SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_);
+        SocketNotifierZMQSocket* createSocketInternal(ZMQSocket::Type type_) override;
     };
 
     NZMQT_API inline ZMQContext* createDefaultContext(QObject* parent_ = nullptr, int io_threads_ = NZMQT_DEFAULT_IOTHREADS)
